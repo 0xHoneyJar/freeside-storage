@@ -1,0 +1,7 @@
+{
+  "name": "@freeside-metadata/protocol",
+  "version": "0.0.1",
+  "private": true,
+  "description": "STUB — sealed metadata schemas (per-token format, storage layout, retrieval API). Content pending parallel design session.",
+  "license": "MIT"
+}

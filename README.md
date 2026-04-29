@@ -1,24 +1,32 @@
-# freeside-metadata
+# freeside-filesystem
 
-> **STUB**. The freeside-* attachment module for NFT metadata serving + storage layout. Operator hint 2026-04-28: *"file system that can be cleanly managed"* — emphasis on storage layout discipline as a first-class concern.
+> The freeside-* attachment module for **file storage layout + static-asset CDN + NFT metadata serving + retrieval API**. Operator framing 2026-04-28: *"name it something like filesystem or something"* — the canonical abstraction across NFT metadata, music, archetype images, future blob types. Closes [`loa-freeside#167`](https://github.com/0xHoneyJar/loa-freeside/issues/167).
 
-This repo is a stub today. It establishes the shape so future content has a home; substantive work lands when the first metadata schema or serving need surfaces.
+This repo is a stub today. It establishes the shape so future content has a home; substantive work lands when the parallel `metadata-module-placement` design session crystallizes OR when the next 502MB-music-style friction surfaces (whichever comes first).
 
-Doctrine: [`freeside-modules-as-installables`](https://github.com/0xHoneyJar/loa-hivemind/blob/main/wiki/concepts/freeside-modules-as-installables.md) (instance-3 of the freeside-* attachment-prefix family; siblings are `freeside-world` and `freeside-score`).
+Renamed from `freeside-metadata` 2026-04-28 late — `filesystem` is the broader, more accurate abstraction. See [[freeside-modules-as-installables]] §"Why the renames".
 
-Sister kickoff (existing): `~/bonfire/grimoires/bonfire/context/metadata-module-placement.md` — referenced in the freeside-world meta design session as a parallel session to determine metadata's placement in the org.
+Doctrine: [`freeside-modules-as-installables`](https://github.com/0xHoneyJar/loa-hivemind/blob/main/wiki/concepts/freeside-modules-as-installables.md) (instance-3 of the freeside-* attachment-prefix family; siblings: `freeside-worlds`, `freeside-score`, `freeside-ruggy`).
 
-## Intended scope (when the friction earns it)
+## Why "filesystem"
+
+NFT metadata is a file. Static assets (music, images, archetype PNGs) are files. Storage layout (where files live + how they're named) is a filesystem concern. CDN delivery is filesystem-serving. Retrieval API is filesystem-querying. **One abstraction; many surfaces.**
+
+Per `loa-freeside#167`: Honey Road's 502MB of static music + archetype PNGs blocked the Docker build for 37+ minutes. The fix — S3 + CloudFront with per-world buckets — is filesystem-shaped infrastructure. This module owns that pattern.
+
+Per Eileen's adjacent file-system framing (multiple issues across the org around storage-shaped concerns): the substrate is what the org is missing. This module is its home.
+
+## Intended scope
 
 ```
-freeside-metadata/
+freeside-filesystem/
 ├── packages/
-│   ├── protocol/         📐 metadata format schemas (per-collection, per-token)
-│   │                        + storage layout convention (file-system-clean)
-│   │                        + retrieval API contract
-│   ├── adapters/         🔁 (eventually) typed clients for serving + retrieval
-│   ├── storage-layouts/  🗂 (eventually) per-pattern file-system templates
-│   └── cli/              🛠 (eventually) freeside-metadata CLI for managing
+│   ├── protocol/         📐 metadata format schemas + storage layout + retrieval API contract
+│   ├── adapters/         🔁 typed clients for serving + retrieval (S3, IPFS, Arweave, local)
+│   ├── storage-layouts/  🗂 per-pattern file-system templates (NFT collection layout,
+│   │                        per-world music, per-Door asset bundles)
+│   ├── cdn-config/       🚀 terraform fragments for the CDN side (per #167)
+│   └── cli/              🛠 freeside-fs CLI for managing layouts + sync to S3 + invalidate
 └── docs/
     ├── INTENT.md            why this module exists (filed today)
     ├── EXTRACTION-MAP.md    (when content lands) what to pull from where
@@ -27,30 +35,40 @@ freeside-metadata/
 
 The `packages/protocol/` slot is consistent across every freeside-* module per [[loa-org-naming-conventions]] single-vocab doctrine.
 
-## Why "file system that can be cleanly managed"
+## What this addresses
 
-Operator framing: NFT metadata serving has a long-tail of file-system pain (Irys gateway death 2026-04-27 surfaced this). Cleanly-managed file storage = one of the load-bearing concerns:
-- Where do per-token metadata JSON files live?
-- How do we mirror them across CDNs / IPFS / Arweave / S3?
-- What's the file-naming convention?
-- How do we re-host a defunct gateway without each consumer re-coding their tokenURI logic?
+Recent friction the org hit:
 
-This module's job: turn that into a sealed, reusable contract.
+- **Honey Road 502MB Docker build** ([`loa-freeside#167`](https://github.com/0xHoneyJar/loa-freeside/issues/167)): docker build hung 37+ minutes copying music. Ad-hoc fix: `.dockerignore public/music`. Music URLs 404 at runtime. Future worlds with big assets will hit the same wall.
+- **Irys gateway death 2026-04-27**: `mibera-honeyroad`'s tokenURI resolver stopped working when the metadata gateway died. Recovery required ad-hoc re-hosting + per-consumer re-coding. No shared module to swap in.
+- **Cross-collection metadata duplication**: each NFT collection (Honeycomb, Henlo, Mibera, future) reimplements its own JSON serving + CDN strategy.
+- **File-system layout drift**: per-token JSON file naming + directory shape diverges between collections. Re-hosting requires per-collection work.
+- **No agent surface for metadata queries**: ruggy's persona-bot can't ask "what trait does token #12345 have" without bespoke per-collection HTTP fetches.
 
-## Why STUB now (not full content)
+Each wants a shared sealed contract. This repo is where that contract goes.
 
-- No active extraction work yet (loa-freeside doesn't own metadata schemas the same way it owns score schemas — different friction shape)
-- Metadata kickoff (`metadata-module-placement.md`) is a parallel design session whose outputs will populate this repo
-- Scaffolding now reserves the name + establishes shape; content lands when design crystallizes
-- Per [[freeside-modules-as-installables]]: design with module boundaries from day 1; impl follows
+## What this repo does NOT own
+
+- Per-collection metadata content (each collection's tokenURI JSON files belong to that collection's repo)
+- World-specific renderers (each world's metadata UI lives in that world's app)
+- Chain-specific tokenURI implementations (live in `mibera-contracts`, etc.)
+- The actual S3 buckets / CloudFront distributions (those are loa-freeside terraform — this repo provides the schema + module input shape)
+
+## Why STUB now
+
+Per [[freeside-modules-as-installables]]: design with module boundaries from day 1; let extraction follow when it earns the cycles. The repo exists; substantive content waits for either:
+- the parallel `metadata-module-placement` design session to land, OR
+- the next 502MB-music-style friction (when an operator hits the wall a second time)
+
+The scaffold reserves the name + establishes shape; content flows in when design crystallizes.
 
 ## Family
 
-| sibling | relation |
+| sibling | role |
 |---|---|
-| [`freeside-world`](https://github.com/0xHoneyJar/freeside-world) | scaffold + creator + registry; world manifests can declare compose_with: freeside-metadata |
-| [`freeside-score`](https://github.com/0xHoneyJar/freeside-score) | scoring schemas; sibling pattern reference for what a fully-fleshed module looks like |
-| [`freeside-ruggy`](https://github.com/0xHoneyJar/freeside-ruggy) (zerker authoring) | persona-bot; will consume metadata schemas for collection-aware fan-out |
+| [`freeside-worlds`](https://github.com/0xHoneyJar/freeside-worlds) | world manifests + creator + protocol + registry |
+| [`freeside-score`](https://github.com/0xHoneyJar/freeside-score) | scoring schemas; sibling pattern reference |
+| [`freeside-ruggy`](https://github.com/0xHoneyJar/freeside-ruggy) | persona-bot consuming metadata schemas for collection-aware fan-out |
 
 ## License
 
@@ -58,4 +76,4 @@ MIT.
 
 ---
 
-🌱 instance-3 stub. Schema vocabulary: `packages/protocol/`. The shape exists; the content waits for friction.
+🌱 instance-3 stub. Name-clarified 2026-04-28 late: filesystem, not metadata. The shape exists; the content waits for friction.

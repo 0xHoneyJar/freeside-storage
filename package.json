@@ -1,12 +1,12 @@
 {
-  "name": "freeside-metadata",
+  "name": "freeside-filesystem",
   "version": "0.0.1",
   "private": true,
-  "description": "STUB — freeside-* attachment module for NFT metadata serving + storage layout. Schema home pending parallel design session (metadata-module-placement).",
+  "description": "STUB — freeside-* attachment module for file storage layout + static-asset CDN + NFT metadata serving + retrieval API. Closes loa-freeside#167. Schema home pending parallel design session.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/0xHoneyJar/freeside-metadata.git"
+    "url": "https://github.com/0xHoneyJar/freeside-filesystem.git"
   },
   "workspaces": [
     "packages/protocol"

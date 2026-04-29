@@ -1,14 +1,20 @@
 {
-  "name": "freeside-filesystem",
+  "name": "freeside-storage",
   "version": "0.0.1",
   "private": true,
-  "description": "STUB — freeside-* attachment module for file storage layout + static-asset CDN + NFT metadata serving + retrieval API. Closes loa-freeside#167. Schema home pending parallel design session.",
+  "description": "freeside-* attachment module for storage layout + static-asset CDN + NFT metadata serving + retrieval API. Closes loa-freeside#167. Lean instance-1 ships protocol + S3 adapter (per ADR-001).",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/0xHoneyJar/freeside-filesystem.git"
+    "url": "https://github.com/0xHoneyJar/freeside-storage.git"
   },
-  "workspaces": [
-    "packages/protocol"
-  ]
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
 }

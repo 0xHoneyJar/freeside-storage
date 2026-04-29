@@ -1,8 +1,8 @@
-# freeside-filesystem — agent instructions
+# freeside-storage — agent instructions
 
 This is a freeside-* attachment module: **file storage layout + static-asset CDN + NFT metadata serving + retrieval API**. **Stub today** — full content lands when the parallel `metadata-module-placement` design session resolves OR when the next 502MB-music-style friction surfaces.
 
-Renamed from `freeside-metadata` 2026-04-28 late (`filesystem` is the broader abstraction; matches operator hint + closes [`loa-freeside#167`](https://github.com/0xHoneyJar/loa-freeside/issues/167)).
+Renamed twice: `freeside-metadata` → `freeside-filesystem` (2026-04-28 late) → `freeside-storage` (2026-04-29 — final canonical name; sovereign asset-surface framing per Sprint 1 of `mature-freeside-operator-and-cutover` cycle). Closes [`loa-freeside#167`](https://github.com/0xHoneyJar/loa-freeside/issues/167).
 
 ## When loaded
 
@@ -22,7 +22,7 @@ Load this CLAUDE.md when:
 ## Composition
 
 - `loa-freeside` — does NOT yet own the file-system schemas; some adjacent CDN/static-asset friction lives in [`#167`](https://github.com/0xHoneyJar/loa-freeside/issues/167) and elsewhere
-- `freeside-worlds` — sibling module; world manifests can declare compose_with: freeside-filesystem
+- `freeside-worlds` — sibling module; world manifests can declare compose_with: freeside-storage
 - `freeside-ruggy` — consumer (persona-bot fan-out per collection)
 
 ## What this repo does NOT own

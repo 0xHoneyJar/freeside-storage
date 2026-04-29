@@ -1,4 +1,4 @@
-# INTENT — why freeside-filesystem exists
+# INTENT — why freeside-storage exists
 
 Operator framing 2026-04-28 late:
 
@@ -8,13 +8,14 @@ Operator framing 2026-04-28 late:
 >
 > *"It's connected with this https://github.com/0xHoneyJar/loa-freeside/issues/167 and another file system issue eileen made. we should probably name it something like filesystem or something."*
 
-## The rename
+## The renames
 
 Originally scaffolded as `freeside-metadata`. Renamed to `freeside-filesystem` 2026-04-28 late after operator review surfaced that:
 1. `metadata` is too narrow — the friction is broader
 2. [`loa-freeside#167`](https://github.com/0xHoneyJar/loa-freeside/issues/167) names the same substrate concern with the static-asset CDN framing (Honey Road 502MB music)
 3. Eileen has filed adjacent file-system issues
-4. `filesystem` is the canonical CS abstraction encompassing all of: NFT metadata + static assets + storage layout + retrieval API
+
+Renamed again to `freeside-storage` 2026-04-29 during Sprint 1 of the `mature-freeside-operator-and-cutover` cycle. The triggering reframe: the URL contract (`assets.0xhoneyjar.xyz/{world}/{category}/{...}`) and the StorageAdapter interface (`packages/protocol/StorageAdapter.ts`) both speak in *storage* primitives (object keys, byte-level ops, presigned URLs), not *filesystem* primitives (paths, directories, mode bits). The module's siblings (`freeside-worlds`, `freeside-score`, `freeside-ruggy`) all name a storage-shaped concern; `freeside-storage` matches that family naming and closes the abstraction. See ADR-001 in this repo.
 
 ## Why this module exists
 

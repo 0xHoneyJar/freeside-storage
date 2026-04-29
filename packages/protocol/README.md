@@ -1,6 +1,6 @@
-# packages/protocol — sealed file-system schemas (stub)
+# packages/protocol — sealed storage schemas
 
-The schema home for `freeside-filesystem`. **Empty today.** Content lands when the parallel `metadata-module-placement` design session crystallizes what belongs here OR when the next 502MB-music-style friction event surfaces.
+The schema home for `freeside-storage`. Two artifacts in scope for Sprint 1 of the `mature-freeside-operator-and-cutover` cycle: the **`StorageAdapter` interface** (per ADR-001) and the **URL contract** (`url-contract.{ts,schema.json}`). Other planned schemas land when the parallel `metadata-module-placement` design session crystallizes OR when the next 502MB-music-style friction surfaces.
 
 ## Planned shape (per [[freeside-modules-as-installables]])
 

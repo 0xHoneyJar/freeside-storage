@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/0xHoneyJar/freeside-storage/blob/main/packages/protocol/url-contract.schema.json",
+  "title": "URL Contract for assets.0xhoneyjar.xyz",
+  "description": "Tier 1 schema-bridge for the sovereign asset surface. Per SDD §0.3 (contracts-as-bridges instance-N). The schema is the durable artifact; the public doc (loa-freeside/docs/asset-url-contract.md) is the human surface.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "host",
+    "template",
+    "worlds",
+    "migrationPhases",
+    "versioning"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semver. v1 is locked at 1.0.0; breaking changes require major bump + 90d deprecation window."
+    },
+    "host": {
+      "type": "string",
+      "const": "assets.0xhoneyjar.xyz",
+      "description": "Asset hostname; locked at v1."
+    },
+    "template": {
+      "type": "string",
+      "const": "assets.0xhoneyjar.xyz/{world}/{category}/{...}",
+      "description": "Canonical URL template the contract enforces."
+    },
+    "worlds": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/WorldContract" }
+    },
+    "migrationPhases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/MigrationPhase" }
+    },
+    "versioning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "breakingChangeRequires", "deprecationWindow"],
+      "properties": {
+        "policy": { "type": "string", "const": "semver" },
+        "breakingChangeRequires": {
+          "type": "string",
+          "const": "major-bump-with-deprecation-window"
+        },
+        "deprecationWindow": { "type": "string", "const": "90d-min" }
+      }
+    }
+  },
+  "$defs": {
+    "WorldSlug": {
+      "type": "string",
+      "enum": ["Mibera", "Purupuru", "sprawl"]
+    },
+    "MigrationPhaseId": {
+      "type": "string",
+      "enum": [
+        "sprint-1",
+        "mibera-2",
+        "mibera-3",
+        "mibera-4",
+        "mibera-rekey"
+      ]
+    },
+    "RouteBacking": {
+      "type": "string",
+      "enum": [
+        "s3-thj-assets",
+        "cloudfront-d163-optimizer",
+        "ipfs-dweb",
+        "irys-gateway",
+        "thj-assets-direct"
+      ]
+    },
+    "CanonicalRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["world", "category", "pattern", "currentBacking"],
+      "properties": {
+        "world": { "$ref": "#/$defs/WorldSlug" },
+        "category": { "type": "string", "minLength": 1 },
+        "pattern": { "type": "string", "minLength": 1 },
+        "currentBacking": { "$ref": "#/$defs/RouteBacking" },
+        "migrationPhase": { "$ref": "#/$defs/MigrationPhaseId" },
+        "postPhaseBacking": { "$ref": "#/$defs/RouteBacking" },
+        "description": { "type": "string" }
+      }
+    },
+    "LegacyRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pattern", "reason"],
+      "properties": {
+        "pattern": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "retiredBy": { "$ref": "#/$defs/MigrationPhaseId" },
+        "canonicalEquivalent": { "type": "string" }
+      }
+    },
+    "WorldContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slug", "prefix", "categories", "routes"],
+      "properties": {
+        "slug": { "$ref": "#/$defs/WorldSlug" },
+        "prefix": { "type": "string", "minLength": 1 },
+        "categories": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "routes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/CanonicalRoute" }
+        },
+        "legacyRoutes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/LegacyRoute" }
+        },
+        "docAnchor": { "type": "string" }
+      }
+    },
+    "MigrationPhase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "cycleName", "scope", "affectedRoutes", "shippedAt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/MigrationPhaseId" },
+        "cycleName": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 },
+        "affectedRoutes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "shippedAt": {
+          "anyOf": [
+            { "type": "string", "format": "date-time" },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  }
+}

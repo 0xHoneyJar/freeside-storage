@@ -248,10 +248,16 @@ export const URL_CONTRACT_V1: URLContract = {
           world: 'Mibera',
           category: 'final',
           pattern: '{tokenId}.png',
-          currentBacking: 'irys-gateway',
+          currentBacking: 's3-thj-assets',
           migrationPhase: 'mibera-2',
           postPhaseBacking: 's3-thj-assets',
-          description: 'Final mibera artwork (re-host from Irys in mibera-2)',
+          description:
+            'Final mibera artwork. The bytes already live on s3 thj-assets at the legacy ' +
+            '`reveal_phase{1..8}/images/{hash}.png` shape (see legacyRoutes). Codex / consumer ' +
+            'apps may flip from `gateway.irys.xyz/...` directly to `assets.0xhoneyjar.xyz/' +
+            'reveal_phase8/images/{hash}.png` today (literal hash-keyed swap, no cycle blocker). ' +
+            'mibera-2 is now an OPTIONAL cycle that rekeys those legacy paths to the canonical ' +
+            'tokenId-keyed `Mibera/final/{tokenId}.png` shape; the codex flip works without it.',
         },
         {
           world: 'Mibera',
@@ -291,9 +297,19 @@ export const URL_CONTRACT_V1: URLContract = {
       legacyRoutes: [
         {
           pattern: '/images/reveal_phase{N}/{...}/{hash}.png',
-          reason: 'Pre-canonical naming preserved during sprint-1 mirror; legacy shape retained for app compatibility',
+          reason: 'Pre-canonical naming preserved during sprint-1 mirror; legacy shape retained for app compatibility (optimizer chain)',
           retiredBy: 'mibera-rekey',
           canonicalEquivalent: '/Mibera/reveal/phase{N}/{hash}.png',
+        },
+        {
+          pattern: '/reveal_phase{N}/images/{hash}.png',
+          reason:
+            'Depth-2 hash-keyed PNGs at /reveal_phase{1..8}/images/. ' +
+            'Phase 8 is the canonical/latest reveal rendering (per Gumi 2026-04-29). ' +
+            'Codex `mibera-image-urls.json` consumers can flip from Irys directly to this ' +
+            'shape via the new CDN — bytes already live in thj-assets; no cycle dependency.',
+          retiredBy: 'mibera-2',
+          canonicalEquivalent: '/Mibera/final/{tokenId}.png',
         },
       ],
       docAnchor: '#mibera',
@@ -353,9 +369,14 @@ export const URL_CONTRACT_V1: URLContract = {
     },
     {
       id: 'mibera-2',
-      cycleName: 'mibera-2 (TBD)',
-      scope: 'Re-host Mibera finals from Irys gateway to assets bucket; rewrite mibera-image-urls.json',
-      affectedRoutes: ['Mibera/final/{tokenId}.png'],
+      cycleName: 'mibera-2 (TBD; OPTIONAL polish — not a blocker for codex flip)',
+      scope:
+        'Rekey legacy `reveal_phase{1..8}/images/{hash}.png` (depth-2, hash-keyed) → canonical ' +
+        '`Mibera/final/{tokenId}.png` (depth-3, tokenId-keyed). The bytes already live in ' +
+        'thj-assets; codex consumers can flip from Irys to `assets.0xhoneyjar.xyz/reveal_phase8/' +
+        'images/{hash}.png` TODAY without this cycle. mibera-2 is canonical-name polish only — ' +
+        'a follow-up that lets the URL contract reach steady state.',
+      affectedRoutes: ['Mibera/final/{tokenId}.png', '/reveal_phase{N}/images/{hash}.png'],
       shippedAt: null,
     },
     {

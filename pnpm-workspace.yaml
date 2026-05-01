@@ -1,3 +1,4 @@
 packages:
   - 'packages/protocol'
   - 'packages/adapters/*'
+  - 'packages/storage-client'

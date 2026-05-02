@@ -39,8 +39,18 @@ describe("miberaMetadataURL", () => {
 });
 
 describe("mstMetadataURL", () => {
-  it("returns honeyroad VM endpoint", () => {
-    expect(mstMetadataURL(2789)).toBe("https://honeyroad.xyz/api/vm/2789");
-    expect(mstMetadataURL(2903)).toBe("https://honeyroad.xyz/api/vm/2903");
+  it("returns sovereign manifest URL under world-scoped MST path", () => {
+    expect(mstMetadataURL(2789)).toBe(
+      "https://metadata.0xhoneyjar.xyz/mibera/mst/2789",
+    );
+    expect(mstMetadataURL(2903)).toBe(
+      "https://metadata.0xhoneyjar.xyz/mibera/mst/2903",
+    );
+  });
+
+  it("works for boundary tokens", () => {
+    expect(mstMetadataURL(1)).toBe(
+      "https://metadata.0xhoneyjar.xyz/mibera/mst/1",
+    );
   });
 });

@@ -23,6 +23,9 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "effect": "^3.10.0"
+  },
   "devDependencies": {
     "typescript": "^5.4.0"
   }

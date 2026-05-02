@@ -12,10 +12,17 @@
  * as gated by the optional mibera-2 polish cycle.
  */
 
-import { Effect } from "effect";
-import { URL_CONTRACT_V1 } from "@freeside-storage/protocol";
+import { Effect, Schema } from "effect";
+import {
+  MetadataDocument,
+  URL_CONTRACT_V1,
+} from "@freeside-storage/protocol";
 
-import { MissingHashError, NotFoundError } from "./errors.js";
+import {
+  MalformedURLError,
+  MissingHashError,
+  NotFoundError,
+} from "./errors.js";
 import { lookupMiberaURL } from "./codex/mibera-urls.js";
 
 export { grailImageURL } from "./codex/grails.js";
@@ -97,6 +104,58 @@ export function lookupSovereignManifest(
   }
   return `${METADATA_HOST}/${req.world}/${req.tokenId}`;
 }
+
+/**
+ * Fetch + decode a sovereign manifest as a typed `MetadataDocument`.
+ *
+ * Composes `lookupSovereignManifest` + `fetch` + `Schema.decodeUnknown`.
+ * Returns the decoded document on success; on failure produces a typed
+ * error so callers can `Effect.catchTag` each case:
+ *   - `NotFoundError` — fetch errored or response was non-2xx
+ *   - `MalformedURLError` — JSON parse failed OR Schema decode rejected
+ *     the payload (missing required field, wrong type, empty image, …)
+ *
+ * Async by necessity (real fetch). For pure URL construction without the
+ * network round-trip use `lookupSovereignManifest`.
+ */
+export const fetchSovereignMetadata = (
+  req: SovereignManifestRequest,
+): Effect.Effect<MetadataDocument, NotFoundError | MalformedURLError> => {
+  const url = lookupSovereignManifest(req);
+  const collection = req.collection ?? req.world;
+
+  return Effect.tryPromise({
+    try: () => fetch(url),
+    catch: () => new NotFoundError({ collection, tokenId: req.tokenId }),
+  }).pipe(
+    Effect.flatMap(
+      (res): Effect.Effect<unknown, NotFoundError | MalformedURLError> =>
+        res.ok
+          ? Effect.tryPromise({
+              try: () => res.json() as Promise<unknown>,
+              catch: () =>
+                new MalformedURLError({
+                  raw: url,
+                  reason: "json-parse-failed",
+                }),
+            })
+          : Effect.fail(
+              new NotFoundError({ collection, tokenId: req.tokenId }),
+            ),
+    ),
+    Effect.flatMap((json) =>
+      Schema.decodeUnknown(MetadataDocument)(json).pipe(
+        Effect.mapError(
+          (cause) =>
+            new MalformedURLError({
+              raw: url,
+              reason: `schema-decode-failed: ${String(cause)}`,
+            }),
+        ),
+      ),
+    ),
+  );
+};
 
 /**
  * Honeyroad app host. Serves MST metadata + dynamic fracture-image lookups.

@@ -32,10 +32,16 @@ export {
   mstMetadataURL,
   grailImageURL,
   lookupSovereignManifest,
+  fetchSovereignMetadata,
   type SovereignWorldSlug,
   type SovereignCollectionSlug,
   type SovereignManifestRequest,
 } from "./client.js";
+
+export {
+  Attribute,
+  MetadataDocument,
+} from "@freeside-storage/protocol";
 
 export {
   lookupGrail,

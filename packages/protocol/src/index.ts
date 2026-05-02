@@ -41,3 +41,5 @@ export {
   type WorldContract,
   type WorldSlug,
 } from './url-contract.js';
+
+export { Attribute, MetadataDocument } from './metadata-document.js';

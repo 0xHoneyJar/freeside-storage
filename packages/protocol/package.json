@@ -23,10 +23,11 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
-  "dependencies": {
+  "peerDependencies": {
     "effect": "^3.10.0"
   },
   "devDependencies": {
+    "effect": "^3.10.0",
     "typescript": "^5.4.0"
   }
 }

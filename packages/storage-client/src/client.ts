@@ -12,7 +12,7 @@
  * as gated by the optional mibera-2 polish cycle.
  */
 
-import { Effect, Schema } from "effect";
+import { Effect, ParseResult, Schema } from "effect";
 import {
   METADATA_HOST,
   MetadataDocument,
@@ -147,7 +147,7 @@ export const fetchSovereignMetadata = (
           (cause) =>
             new MalformedURLError({
               raw: url,
-              reason: `schema-decode-failed: ${String(cause)}`,
+              reason: `schema-decode-failed:\n${ParseResult.TreeFormatter.formatErrorSync(cause)}`,
             }),
         ),
       ),

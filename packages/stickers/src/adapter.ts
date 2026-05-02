@@ -23,7 +23,7 @@
  * by being the listening primitive that catches drift in CI before user UX.
  */
 
-import { Either, Schema } from "effect";
+import { Either, ParseResult, Schema } from "effect";
 import { StickerProfile, type StickerWorldT } from "./profile.js";
 
 /**
@@ -159,5 +159,10 @@ export function checkManifestDrift(
   if (Either.isRight(decoded)) {
     return { ok: true, issues: "" };
   }
-  return { ok: false, issues: String(decoded.left) };
+  // Use TreeFormatter so consumers get a human-readable issue tree instead of
+  // `[object Object]` from default ParseError.toString() coercion.
+  return {
+    ok: false,
+    issues: ParseResult.TreeFormatter.formatErrorSync(decoded.left),
+  };
 }

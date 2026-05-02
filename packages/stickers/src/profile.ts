@@ -3,10 +3,12 @@
  *
  * Per SDD §3.1 (composable-sticker-substrate-2026-05-01) — this is the durable
  * contract between L3 substrate (CDN manifest + codex) and L4 consumers
- * (dimensions, characters, headless renderers). `additionalProperties: false`
- * is implicit via `Schema.Struct` — the surface is sealed on required fields,
- * permissive on Schema.optional daemon-stage axes for V0.7+ forward-compat
- * (PRD D-2).
+ * (dimensions, characters, headless renderers). The required-field surface is
+ * sealed by literal/branded validation; daemon-stage axes are reserved as
+ * `Schema.optional` for V0.7+ forward-compat (PRD D-2). Note: `Schema.Struct`
+ * is permissive on additional properties — extras decode through silently.
+ * Drift detection in Phase-1 surfaces shape mismatches via the missing /
+ * malformed required fields, not via unexpected extras.
  *
  * Doctrine: [[contracts-as-bridges]] · [[url-contract-as-bridge]] ·
  * [[continuous-metadata-as-daemon-substrate]] · [[composition-schema-as-bridge]].

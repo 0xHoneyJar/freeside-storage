@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import { Either, Schema } from "effect";
 import { StickerProfile } from "../src/profile.js";
 import {
+  checkManifestDrift,
   COLLECTION_MANIFEST_URLS,
   synthesizeStickerProfile,
   V06X_EXPRESSIONS,
@@ -104,5 +105,37 @@ describe("synthesizeStickerProfile · adapter shim", () => {
     });
     const decoded = Schema.decodeUnknownEither(StickerProfile)(result);
     expect(Either.isRight(decoded)).toBe(true);
+  });
+});
+
+describe("checkManifestDrift · F5 regression (issues string readability)", () => {
+  it("ok=true returns empty issues string", () => {
+    const result = checkManifestDrift(baseManifest, {
+      tokenId: 42,
+      world: "mibera",
+      isGrail: false,
+    });
+    expect(result.ok).toBe(true);
+    expect(result.issues).toBe("");
+  });
+
+  it("ok=false issues string is human-readable (not '[object Object]')", () => {
+    // Skipped sample tokenId triggers the load-bearing drift path.
+    const skippedManifest: GlobalManifest = {
+      ...baseManifest,
+      skippedTokenIds: [42],
+    };
+    const result = checkManifestDrift(skippedManifest, {
+      tokenId: 42,
+      world: "mibera",
+      isGrail: false,
+    });
+    expect(result.ok).toBe(false);
+    // TreeFormatter output starts with the schema identifier and lists issues.
+    // Prior implementation used String(decoded.left) which yields '[object Object]'.
+    expect(result.issues).not.toBe("[object Object]");
+    expect(result.issues.length).toBeGreaterThan(20);
+    // Issue tree should mention the field that drove the rejection.
+    expect(result.issues).toMatch(/expressionsAvailable|minItems/i);
   });
 });

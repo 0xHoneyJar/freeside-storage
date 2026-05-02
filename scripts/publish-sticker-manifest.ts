@@ -101,14 +101,26 @@ function parseArgs(argv: string[]): Args {
     throw new Error(`--version must match /^v\\d+$/; got ${version}`);
   }
 
+  // Sanity caps: order-of-magnitude bound to catch typos (e.g. 1e9 instead of 1e3).
+  // No NFT collection in this ecosystem is anywhere near these; a real overflow
+  // would be a separate PR justifying the bump.
+  const TOKEN_COUNT_MAX = 1_000_000;
+  const EXPRESSION_COUNT_MAX = 1_000;
+
   const tokenCount = Number(args["token-count"]);
   if (!Number.isFinite(tokenCount) || tokenCount <= 0 || !Number.isInteger(tokenCount)) {
     throw new Error(`--token-count must be a positive integer; got ${args["token-count"]}`);
+  }
+  if (tokenCount > TOKEN_COUNT_MAX) {
+    throw new Error(`--token-count ${tokenCount} exceeds sanity cap ${TOKEN_COUNT_MAX} (typo?)`);
   }
 
   const expressionCount = Number(args["expression-count"]);
   if (!Number.isFinite(expressionCount) || expressionCount <= 0 || !Number.isInteger(expressionCount)) {
     throw new Error(`--expression-count must be a positive integer; got ${args["expression-count"]}`);
+  }
+  if (expressionCount > EXPRESSION_COUNT_MAX) {
+    throw new Error(`--expression-count ${expressionCount} exceeds sanity cap ${EXPRESSION_COUNT_MAX} (typo?)`);
   }
 
   const variants = (args["variants"] ?? "transparent")
@@ -137,9 +149,19 @@ function parseArgs(argv: string[]): Args {
           if (!Number.isInteger(n) || n < 0) {
             throw new Error(`--skipped-token-ids must be non-negative integers; bad: ${s}`);
           }
+          if (n > tokenCount) {
+            throw new Error(
+              `--skipped-token-ids ${n} exceeds --token-count ${tokenCount} (out of supply range)`,
+            );
+          }
           return n;
         })
     : [];
+  if (skippedTokenIds.length > tokenCount) {
+    throw new Error(
+      `--skipped-token-ids has ${skippedTokenIds.length} entries but --token-count is only ${tokenCount}`,
+    );
+  }
 
   const output = args["output"] ?? `./out/Mibera-${collection}-current.json`;
 

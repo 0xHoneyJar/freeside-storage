@@ -366,6 +366,16 @@ export const URL_CONTRACT_V1: URLContract = {
         // Companion to composable-sticker-substrate-2026-05-01 consumer side
         // (freeside-storage#4 + mibera-dimensions#206 SHIPPED 2026-05-02).
         // Manifest shape matches StickerProfile from @freeside-storage/stickers.
+        //
+        // CONTRACT-AHEAD-OF-SUBSTRATE NOTE: routes below are registered before
+        // their substrate bytes exist. Consumers enumerating canonical routes
+        // for liveness should JOIN against `migrationPhases` and skip routes
+        // whose `migrationPhase.shippedAt === null`:
+        //   const phase = contract.migrationPhases.find(p => p.id === route.migrationPhase);
+        //   if (phase?.shippedAt == null) skip;  // not yet live
+        // Per shadow-traits.md (construct-mibera-codex), Shadow ≡ MST (alias —
+        // narrative name vs technical contract symbol "Mibera Shadow Traits").
+        // Both path conventions registered for transitional consumer compat.
         {
           world: 'Mibera',
           category: 'Shadow',
@@ -399,10 +409,11 @@ export const URL_CONTRACT_V1: URLContract = {
           migrationPhase: 'mibera-family-sticker-substrate',
           postPhaseBacking: 's3-thj-assets',
           description:
-            'Mibera Shadow Traits (MST) sticker manifest — 3219 tokens. ' +
-            'Sovereign metadata at metadata.0xhoneyjar.xyz/mibera/mst/{N} ' +
-            '(shipped 2026-05-01 via mst-sovereign-cutover); sticker assets ' +
-            'are the next layer.',
+            'MST sticker manifest — 3219 known tokens. MST = "Mibera Shadow ' +
+            'Traits" (on-chain symbol; narratively "Shadow" — see Shadow ' +
+            'category routes above for the alias path). Sovereign metadata at ' +
+            'metadata.0xhoneyjar.xyz/mibera/mst/{N} (shipped 2026-05-01 via ' +
+            'mst-sovereign-cutover); sticker assets are the next layer.',
         },
         {
           world: 'Mibera',
@@ -412,8 +423,9 @@ export const URL_CONTRACT_V1: URLContract = {
           migrationPhase: 'mibera-family-sticker-substrate',
           postPhaseBacking: 's3-thj-assets',
           description:
-            'MST per-token sticker render. Mirrors the Mibera convention. ' +
-            'Source generation pipeline TBD per M-2 of the substrate handoff.',
+            'MST per-token sticker render (alias of Shadow path above — same ' +
+            'collection). Mirrors the Mibera convention. Source generation ' +
+            'pipeline TBD per M-2 of the substrate handoff.',
         },
       ],
       legacyRoutes: [

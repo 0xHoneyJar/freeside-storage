@@ -33,6 +33,7 @@ export {
   grailImageURL,
   lookupSovereignManifest,
   fetchSovereignMetadata,
+  lookupHoneyroadAsset,
   type SovereignWorldSlug,
   type SovereignCollectionSlug,
   type SovereignManifestRequest,

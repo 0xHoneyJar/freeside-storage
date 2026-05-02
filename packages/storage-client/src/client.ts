@@ -164,6 +164,60 @@ export const fetchSovereignMetadata = (
 const HONEYROAD_HOST = "https://honeyroad.xyz";
 
 /**
+ * Legacy CloudFront optimizer host that mibera-honeyroad emits in 13+
+ * read-side and write-side callsites today (per the substrate-audit doc,
+ * 2026-05-01). The d163 distribution is operator-uncontrolled — any URL
+ * landing in DB-at-rest values that names this host couples NFT identity
+ * to ephemeral substrate.
+ */
+const D163_HOST = "d163aeqznbc6js.cloudfront.net";
+
+/**
+ * Translate a d163 URL into its sovereign assets-host equivalent.
+ *
+ * Migration helper for Track A consumer-flip work in mibera-honeyroad —
+ * lets the substrate flip happen in stages (call this transform on a d163
+ * URL today; the path is preserved verbatim against `assets.0xhoneyjar.xyz`).
+ * Strict: throws `MalformedURLError` on any input whose host isn't d163,
+ * so callers can't accidentally double-map an already-flipped URL or smuggle
+ * in an unrelated CDN reference (per SDD A2 LOCKED).
+ *
+ * @deprecated Track A migration helper for the cross-collection-sovereignty
+ *   cycle (2026-05-01). Removed after Track A.I shim retirement (Sprint 9).
+ *   The long-term shape is direct emission of assets-host URLs at the source
+ *   — when you reach for this transform, prefer rewriting the call site to
+ *   emit `assets.0xhoneyjar.xyz` natively.
+ *
+ * @example
+ *   lookupHoneyroadAsset(
+ *     "https://d163aeqznbc6js.cloudfront.net/Mibera/generated/42.webp",
+ *   )
+ *   // → "https://assets.0xhoneyjar.xyz/Mibera/generated/42.webp"
+ *
+ * @throws {MalformedURLError} Input is not a parseable URL OR host is not d163
+ */
+export function lookupHoneyroadAsset(d163Url: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(d163Url);
+  } catch {
+    throw new MalformedURLError({
+      raw: d163Url,
+      reason: "not-a-valid-url",
+    });
+  }
+
+  if (parsed.host !== D163_HOST) {
+    throw new MalformedURLError({
+      raw: d163Url,
+      reason: `expected host ${D163_HOST}, got ${parsed.host}`,
+    });
+  }
+
+  return `${ASSETS_HOST}${parsed.pathname}${parsed.search}${parsed.hash}`;
+}
+
+/**
  * Mibera-canon image URL by content hash.
  *
  * Substrate-truth resolution: returns the legacyRoute shape

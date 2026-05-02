@@ -6,7 +6,7 @@ export default defineConfig({
     environment: "jsdom",
     server: {
       deps: {
-        inline: [/^@freeside-storage\//, "effect"],
+        inline: [/^@0xhoneyjar\//, "effect"],
       },
     },
   },

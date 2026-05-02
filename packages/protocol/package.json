@@ -1,7 +1,6 @@
 {
-  "name": "@freeside-storage/protocol",
+  "name": "@0xhoneyjar/freeside-storage-protocol",
   "version": "0.0.1",
-  "private": true,
   "description": "Sealed schemas for freeside-storage — StorageAdapter common interface + URL contract + types. Lean instance-1 (per ADR-001).",
   "license": "MIT",
   "type": "module",
@@ -18,6 +17,14 @@
     "src",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xHoneyJar/freeside-storage.git",
+    "directory": "packages/protocol"
+  },
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc --noEmit",

@@ -28,7 +28,7 @@
     "@aws-sdk/client-s3": "^3.620.0",
     "@aws-sdk/client-sts": "^3.620.0",
     "@aws-sdk/s3-request-presigner": "^3.620.0",
-    "@freeside-storage/protocol": "workspace:*"
+    "@0xhoneyjar/freeside-storage-protocol": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.12.0",

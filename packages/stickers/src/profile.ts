@@ -15,7 +15,7 @@
  */
 
 import { Schema } from "effect";
-import { TokenId } from "@freeside-storage/client";
+import { TokenId } from "@0xhoneyjar/freeside-storage-client";
 
 // ── Sticker world enum (subset of URL_CONTRACT_V1.WorldSlug) ──────────────
 export const StickerWorld = Schema.Literal("mibera", "shadow", "grail");

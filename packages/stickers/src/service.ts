@@ -19,7 +19,7 @@ import type {
 import {
   type MalformedURLError,
   type NotFoundError,
-} from "@freeside-storage/client";
+} from "@0xhoneyjar/freeside-storage-client";
 
 // ── Tagged error for decode failures (SDD §6) ─────────────────────────────
 export class StickerProfileDecodeError extends Data.TaggedError(
@@ -55,7 +55,7 @@ export interface StickerService {
 }
 
 export const StickerService = Context.GenericTag<StickerService>(
-  "@freeside-storage/stickers/StickerService",
+  "@0xhoneyjar/freeside-storage-stickers/StickerService",
 );
 
 // ── Default Layer · Phase-0 skeleton ─────────────────────────────────────

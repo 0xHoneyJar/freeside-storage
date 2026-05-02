@@ -1,8 +1,7 @@
 {
-  "name": "@freeside-storage/stickers",
+  "name": "@0xhoneyjar/freeside-storage-stickers",
   "version": "0.0.1",
-  "private": true,
-  "description": "Sealed StickerProfile Effect Schema + service interface for the freeside-storage asset plane. Profile-scaffolds-all sticker resolution; client/server agnostic; composes with @freeside-storage/client URL_CONTRACT_V1. Phase-0 Schema substrate per composable-sticker-substrate-2026-05-01 cycle.",
+  "description": "Sealed StickerProfile Effect Schema + service interface for the freeside-storage asset plane. Profile-scaffolds-all sticker resolution; client/server agnostic; composes with @0xhoneyjar/freeside-storage-client URL_CONTRACT_V1. Phase-0 Schema substrate per composable-sticker-substrate-2026-05-01 cycle.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,6 +17,14 @@
     "src",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xHoneyJar/freeside-storage.git",
+    "directory": "packages/stickers"
+  },
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc --noEmit",
@@ -28,8 +35,8 @@
     "test:watch": "vitest --config vitest.config.ts"
   },
   "dependencies": {
-    "@freeside-storage/client": "workspace:*",
-    "@freeside-storage/protocol": "workspace:*",
+    "@0xhoneyjar/freeside-storage-client": "workspace:*",
+    "@0xhoneyjar/freeside-storage-protocol": "workspace:*",
     "effect": "^3.10.0"
   },
   "devDependencies": {

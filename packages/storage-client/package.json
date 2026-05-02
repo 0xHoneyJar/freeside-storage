@@ -1,7 +1,6 @@
 {
-  "name": "@freeside-storage/client",
+  "name": "@0xhoneyjar/freeside-storage-client",
   "version": "0.1.0",
-  "private": true,
   "description": "Type-safe URL builders + codex consumers for the freeside-storage URL contract. EffectTS Schema validates inputs/outputs; URL_CONTRACT_V1 is the source of truth.",
   "license": "MIT",
   "type": "module",
@@ -18,6 +17,14 @@
     "src",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xHoneyJar/freeside-storage.git",
+    "directory": "packages/storage-client"
+  },
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc --noEmit",
@@ -26,7 +33,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@freeside-storage/protocol": "workspace:*",
+    "@0xhoneyjar/freeside-storage-protocol": "workspace:*",
     "effect": "^3.10.0"
   },
   "devDependencies": {

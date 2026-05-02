@@ -13,7 +13,7 @@
  */
 
 import { Effect } from "effect";
-import { URL_CONTRACT_V1 } from "@freeside-storage/protocol";
+import { URL_CONTRACT_V1 } from "@0xhoneyjar/freeside-storage-protocol";
 
 import { MissingHashError, NotFoundError } from "./errors.js";
 import { lookupMiberaURL } from "./codex/mibera-urls.js";

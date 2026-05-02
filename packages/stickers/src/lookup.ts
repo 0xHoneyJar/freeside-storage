@@ -18,7 +18,7 @@ import {
   MalformedURLError,
   NotFoundError,
   lookupGrail,
-} from "@freeside-storage/client";
+} from "@0xhoneyjar/freeside-storage-client";
 import {
   StickerProfile,
   type StickerLookupQueryT,

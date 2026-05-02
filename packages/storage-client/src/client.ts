@@ -14,15 +14,12 @@
 
 import { Effect, Schema } from "effect";
 import {
+  METADATA_HOST,
   MetadataDocument,
   URL_CONTRACT_V1,
 } from "@freeside-storage/protocol";
 
-import {
-  MalformedURLError,
-  MissingHashError,
-  NotFoundError,
-} from "./errors.js";
+import { MalformedURLError, NotFoundError } from "./errors.js";
 import { lookupMiberaURL } from "./codex/mibera-urls.js";
 
 export { grailImageURL } from "./codex/grails.js";
@@ -30,12 +27,13 @@ export { grailImageURL } from "./codex/grails.js";
 const ASSETS_HOST = `https://${URL_CONTRACT_V1.host}`;
 
 /**
- * Sovereign metadata host. Resolves on-chain `tokenURI(N)` (ERC-721) and
- * `uri(id)` (ERC-1155) for every Mibera-world collection that has flipped
- * to the manifest pattern. Lives behind a CloudFront Function with a KV
- * pointer; the bytes themselves live at `s3://thj-assets/mibera/{collection}/...`.
+ * Sovereign metadata host URL (with protocol). Resolves on-chain `tokenURI(N)`
+ * (ERC-721) and `uri(id)` (ERC-1155) for every Mibera-world collection that
+ * has flipped to the manifest pattern. Lives behind a CloudFront Function
+ * with a KV pointer; the manifest bytes live at
+ * `s3://thj-assets/mibera/{collection}/metadata/v/{ver}/`.
  */
-const METADATA_HOST = "https://metadata.0xhoneyjar.xyz";
+const METADATA_BASE_URL = `https://${METADATA_HOST}`;
 
 /**
  * Sovereign-routing world slugs. Locked to `mibera` as of v1.1.0 — the only
@@ -100,9 +98,9 @@ export function lookupSovereignManifest(
   req: SovereignManifestRequest,
 ): string {
   if (req.collection) {
-    return `${METADATA_HOST}/${req.world}/${req.collection}/${req.tokenId}`;
+    return `${METADATA_BASE_URL}/${req.world}/${req.collection}/${req.tokenId}`;
   }
-  return `${METADATA_HOST}/${req.world}/${req.tokenId}`;
+  return `${METADATA_BASE_URL}/${req.world}/${req.tokenId}`;
 }
 
 /**
@@ -249,52 +247,45 @@ export const miberaImageURLByToken = (
 ): Effect.Effect<string, NotFoundError> => lookupMiberaURL(tokenId);
 
 /**
- * Mibera-canon metadata URL. All 10000 tokens resolve via the sovereign
- * manifest pattern (CF Function + KV pointer) provisioned in Cutover C.
+ * Mibera-canon metadata URL. Thin back-compat wrapper over
+ * `lookupSovereignManifest` — preserved so existing consumers (PR #2 callers)
+ * keep working without changing their import.
  */
 export function miberaMetadataURL(tokenId: number): string {
-  return `${METADATA_HOST}/mibera/${tokenId}`;
+  return lookupSovereignManifest({ world: "mibera", tokenId });
 }
 
 /**
- * Mibera Shadows (MST) metadata URL. All MST tokens resolve via the sovereign
- * manifest pattern (CF Function + KV pointer) under the world-scoped path
- * `/{world}/{collection}/{N}` provisioned in Cutover B of the
- * migrate-mst-sovereignty cycle (2026-05-01).
+ * Mibera Shadows (MST) metadata URL. Thin back-compat wrapper over
+ * `lookupSovereignManifest({ world: "mibera", collection: "mst", tokenId })`.
+ *
+ * Provisioned by Cutover B of the migrate-mst-sovereignty cycle (2026-05-01).
+ * New callers should reach for `lookupSovereignManifest` directly.
  */
 export function mstMetadataURL(tokenId: number): string {
-  return `${METADATA_HOST}/mibera/mst/${tokenId}`;
+  return lookupSovereignManifest({
+    world: "mibera",
+    collection: "mst",
+    tokenId,
+  });
 }
 
 /**
  * Mibera Shadows (MST) image URL. Async because the metadata's `image` field
  * is the canonical answer (handles timestamp-suffix variants for re-generated
  * tokens — see issue loa-freeside#197 for the substrate-truth diagnosis).
+ *
+ * v1.1.0: refactored to compose `fetchSovereignMetadata` + `.image` extraction.
+ * The MetadataDocument Schema enforces `image` as a non-empty string, so a
+ * payload missing `image` surfaces as MalformedURLError at the schema-decode
+ * boundary rather than producing a runtime undefined.
  */
 export const mstImageURL = (
   tokenId: number,
-): Effect.Effect<string, NotFoundError | MissingHashError> =>
-  Effect.tryPromise({
-    try: () => fetch(mstMetadataURL(tokenId)),
-    catch: () => new NotFoundError({ collection: "mst", tokenId }),
-  }).pipe(
-    Effect.flatMap((res) =>
-      res.ok
-        ? Effect.tryPromise({
-            try: () => res.json() as Promise<{ image?: string }>,
-            catch: () => new NotFoundError({ collection: "mst", tokenId }),
-          })
-        : Effect.fail(new NotFoundError({ collection: "mst", tokenId })),
-    ),
-    Effect.flatMap((json) =>
-      json.image
-        ? Effect.succeed(json.image)
-        : Effect.fail(
-            new MissingHashError({
-              tokenId,
-              source: "mstMetadata.image",
-            }),
-          ),
-    ),
-  );
+): Effect.Effect<string, NotFoundError | MalformedURLError> =>
+  fetchSovereignMetadata({
+    world: "mibera",
+    collection: "mst",
+    tokenId,
+  }).pipe(Effect.map((doc) => doc.image));
 

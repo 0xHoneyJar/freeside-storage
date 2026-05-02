@@ -29,11 +29,13 @@ export type { StorageAdapter } from './StorageAdapter.js';
 export {
   URL_CONTRACT_VERSION,
   URL_CONTRACT_V1,
+  METADATA_HOST,
   isCanonicalPath,
   type AssetsHost,
   type CanonicalRoute,
   type CategoryByWorld,
   type LegacyRoute,
+  type MetadataHost,
   type MigrationPhase,
   type MigrationPhaseId,
   type RouteBacking,

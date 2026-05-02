@@ -14,11 +14,14 @@
  */
 
 /**
- * URL contract version. v1 is the authored shape for the
- * `mature-freeside-operator-and-cutover` cycle. Breaking changes require a
- * version bump + deprecation window per Section 7 of the public doc.
+ * URL contract version. v1.0 was the authored shape for the
+ * `mature-freeside-operator-and-cutover` cycle (assets-host only).
+ * v1.1 (cross-collection-sovereignty cycle, 2026-05-01) introduces the
+ * companion sovereign metadata host + cf-function-kv-manifest backing +
+ * 3 sovereignty migration phase IDs. Additive-only — no consumer breakage.
+ * Breaking changes require a major bump + deprecation window per Section 7.
  */
-export const URL_CONTRACT_VERSION = '1.0.0' as const;
+export const URL_CONTRACT_VERSION = '1.1.0' as const;
 
 /**
  * The hostname under which the URL contract resolves. v1 locks this to
@@ -27,6 +30,24 @@ export const URL_CONTRACT_VERSION = '1.0.0' as const;
  * union at that point.
  */
 export type AssetsHost = 'assets.0xhoneyjar.xyz';
+
+/**
+ * Sovereign metadata host. Companion to `AssetsHost`: where AssetsHost
+ * serves immutable image bytes, MetadataHost serves the JSON manifest that
+ * links those bytes to NFT identity. Backed by a CloudFront Function +
+ * KV pointer (see `RouteBacking: 'cf-function-kv-manifest'`); the manifest
+ * payload itself lives at `s3://thj-assets/mibera/{collection}/metadata/v/{ver}/`.
+ *
+ * Introduced in v1.1.0 (cross-collection-sovereignty cycle, 2026-05-01).
+ */
+export type MetadataHost = 'metadata.0xhoneyjar.xyz';
+
+/**
+ * `MetadataHost` as a const value. SDK code that constructs sovereign
+ * manifest URLs without going through `lookupSovereignManifest` may import
+ * this directly.
+ */
+export const METADATA_HOST: MetadataHost = 'metadata.0xhoneyjar.xyz';
 
 /**
  * Top-level worlds the contract recognizes. Slugs match the
@@ -57,28 +78,43 @@ export type CategoryByWorld = {
 };
 
 /**
- * Migration phase IDs. Each phase corresponds to a deferred future cycle
- * (per SDD §0.2). The current cycle is `sprint-1`; downstream cycles
- * (Mibera-2/3/4/rekey) extend the enum as they ship.
+ * Migration phase IDs. Each phase corresponds to a (past or future) cycle
+ * that re-hosts a slice of the URL contract.
+ *
+ * Asset-host phases (sprint-1 / mibera-2 / mibera-3 / mibera-4 / mibera-rekey)
+ * track migrations of the bytes themselves on `assets.0xhoneyjar.xyz`.
+ *
+ * Sovereignty phases (mibera-sovereign-cutover / mst-sovereign-cutover /
+ * cross-collection-sovereign) — added in v1.1.0 — track migrations of the
+ * manifest-host pointer on `metadata.0xhoneyjar.xyz`. They flip on-chain
+ * `tokenURI`/`uri` from honeyroad's Vercel app to the sovereign manifest
+ * pattern (CF Function + KV pointer + S3 manifest payload).
  */
 export type MigrationPhaseId =
   | 'sprint-1'
   | 'mibera-2'
   | 'mibera-3'
   | 'mibera-4'
-  | 'mibera-rekey';
+  | 'mibera-rekey'
+  | 'mibera-sovereign-cutover'
+  | 'mst-sovereign-cutover'
+  | 'cross-collection-sovereign';
 
 /**
  * Backing layer for a route. v1 worlds back routes via S3, IPFS gateway,
  * Irys gateway, or remain pinned to the legacy CloudFront optimizer chain
- * (per ADR-006). Future versions add more backings as adapters land.
+ * (per ADR-006). v1.1 adds `cf-function-kv-manifest` — the sovereign
+ * manifest substrate (CloudFront Function reads a KV pointer per
+ * `{world}/[{collection}/]{tokenId}` key, redirects to the versioned S3
+ * manifest payload). Future versions add more backings as adapters land.
  */
 export type RouteBacking =
   | 's3-thj-assets'
   | 'cloudfront-d163-optimizer'
   | 'ipfs-dweb'
   | 'irys-gateway'
-  | 'thj-assets-direct';
+  | 'thj-assets-direct'
+  | 'cf-function-kv-manifest';
 
 /**
  * A single canonical route within a world. The shape of `path` follows the
@@ -398,6 +434,42 @@ export const URL_CONTRACT_V1: URLContract = {
       cycleName: 'mibera-rekey (TBD; after mibera-2/3/4)',
       scope: 'Single rekey pass: legacy /images/reveal_phase{N}/... → canonical /Mibera/reveal/phase{N}/...; provide redirects for grace window; deprecate legacy on published timeline',
       affectedRoutes: ['/images/reveal_phase{N}/{...}/{hash}.png'],
+      shippedAt: null,
+    },
+    {
+      id: 'mibera-sovereign-cutover',
+      cycleName: 'migrate-mibera-sovereignty-2026-05-01',
+      scope:
+        'Flip canon Mibera tokenURI(N) from honeyroad to ' +
+        'metadata.0xhoneyjar.xyz/mibera/{N}; provision CF Function + KV ' +
+        'pointer + S3 manifest payload (manifest pattern, dogfooded).',
+      affectedRoutes: ['metadata.0xhoneyjar.xyz/mibera/{N}'],
+      shippedAt: '2026-05-01',
+    },
+    {
+      id: 'mst-sovereign-cutover',
+      cycleName: 'migrate-mst-sovereignty-2026-05-01',
+      scope:
+        'Flip MST (Mibera Shadows) tokenURI(N) to ' +
+        'metadata.0xhoneyjar.xyz/mibera/mst/{N}. World-scoped hierarchy ' +
+        '(amendment A2) — CF Function dispatches both single-segment ' +
+        '(canon namesake) and two-segment (sibling) shapes from one origin.',
+      affectedRoutes: ['metadata.0xhoneyjar.xyz/mibera/mst/{N}'],
+      shippedAt: '2026-05-01',
+    },
+    {
+      id: 'cross-collection-sovereign',
+      cycleName: 'cross-collection-sovereignty-2026-05-01',
+      scope:
+        'Roll out the manifest pattern to remaining Mibera-world collections ' +
+        '(Tarot, GIF, Candies). Each collection ships its own per-world setBaseURI ' +
+        'with KV pointer + S3 manifest payload + per-collection composition adapter. ' +
+        'Distills the recipe into construct-freeside as `synthesizing-from-postgres`.',
+      affectedRoutes: [
+        'metadata.0xhoneyjar.xyz/mibera/tarot/{N}',
+        'metadata.0xhoneyjar.xyz/mibera/gif/{N}',
+        'metadata.0xhoneyjar.xyz/mibera/candies/{id}',
+      ],
       shippedAt: null,
     },
   ],

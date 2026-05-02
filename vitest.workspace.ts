@@ -5,7 +5,10 @@ export default defineWorkspace([
     test: {
       name: "node",
       environment: "node",
-      include: ["packages/*/tests/**/*.test.ts"],
+      include: [
+        "packages/*/tests/**/*.test.ts",
+        "scripts/**/*.test.ts",
+      ],
     },
   },
   {

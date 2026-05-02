@@ -31,6 +31,10 @@ export {
   mstImageURL,
   mstMetadataURL,
   grailImageURL,
+  lookupSovereignManifest,
+  type SovereignWorldSlug,
+  type SovereignCollectionSlug,
+  type SovereignManifestRequest,
 } from "./client.js";
 
 export {

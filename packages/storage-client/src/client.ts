@@ -23,10 +23,80 @@ export { grailImageURL } from "./codex/grails.js";
 const ASSETS_HOST = `https://${URL_CONTRACT_V1.host}`;
 
 /**
- * Sovereign metadata host. Resolves on-chain `tokenURI(N)` for Mibera-canon.
- * Provisioned by Cutover C of the migrate-mibera-sovereignty cycle.
+ * Sovereign metadata host. Resolves on-chain `tokenURI(N)` (ERC-721) and
+ * `uri(id)` (ERC-1155) for every Mibera-world collection that has flipped
+ * to the manifest pattern. Lives behind a CloudFront Function with a KV
+ * pointer; the bytes themselves live at `s3://thj-assets/mibera/{collection}/...`.
  */
 const METADATA_HOST = "https://metadata.0xhoneyjar.xyz";
+
+/**
+ * Sovereign-routing world slugs. Locked to `mibera` as of v1.1.0 — the only
+ * world with active sovereign-manifest cutovers. Future worlds extend this
+ * union as their first cutover ships.
+ *
+ * Note: distinct from the assets-host `WorldSlug` (`Mibera`/`Purupuru`/`sprawl`,
+ * capitalized) since the sovereignty path convention uses lowercase.
+ */
+export type SovereignWorldSlug = "mibera";
+
+/**
+ * Sovereign-routing collection slugs within a world. Omit from a request to
+ * resolve the canon namesake (single-segment `/{world}/{tokenId}`); supply to
+ * resolve a sibling collection (two-segment `/{world}/{collection}/{tokenId}`).
+ *
+ * v1.1.0 known collections (Mibera-world):
+ *   - `mst` (Mibera Shadows, ERC-721; shipped Cutover B of MST cycle)
+ *   - `tarot` (ERC-721; cycle Sprint 6)
+ *   - `gif` (ERC-721; cycle Sprint 7)
+ *   - `candies` (ERC-1155; cycle Sprint 8)
+ *   - `fractures` (multi-contract array; future cycle)
+ */
+export type SovereignCollectionSlug =
+  | "mst"
+  | "tarot"
+  | "gif"
+  | "candies"
+  | "fractures";
+
+/**
+ * Request shape for sovereign manifest URL resolution. ERC-721 callers pass
+ * `tokenId`; ERC-1155 callers pass the same field (CF Function routes both via
+ * the same `/{world}/[{collection}/]{N}` shape — chain-side function name
+ * differs, but the off-chain integration contract is identical).
+ */
+export interface SovereignManifestRequest {
+  /** Sovereign-routing world slug (lowercase per A1 amendment) */
+  world: SovereignWorldSlug;
+  /** Optional collection within the world. Omit for canon namesake. */
+  collection?: SovereignCollectionSlug;
+  /** ERC-721 tokenId or ERC-1155 id */
+  tokenId: number;
+}
+
+/**
+ * Resolve the sovereign manifest URL for any Mibera-world collection.
+ *
+ * Mirrors the CF Function routing exactly: collection omitted ⇒ single-segment
+ * path (canon namesake); collection present ⇒ two-segment path (sibling).
+ * Pure / sync — no fetch, no validation. Use with `fetchSovereignMetadata`
+ * for typed-decode + Schema validation at the boundary.
+ *
+ * @example
+ *   lookupSovereignManifest({ world: "mibera", tokenId: 5000 })
+ *   // → "https://metadata.0xhoneyjar.xyz/mibera/5000"
+ *
+ *   lookupSovereignManifest({ world: "mibera", collection: "mst", tokenId: 1 })
+ *   // → "https://metadata.0xhoneyjar.xyz/mibera/mst/1"
+ */
+export function lookupSovereignManifest(
+  req: SovereignManifestRequest,
+): string {
+  if (req.collection) {
+    return `${METADATA_HOST}/${req.world}/${req.collection}/${req.tokenId}`;
+  }
+  return `${METADATA_HOST}/${req.world}/${req.tokenId}`;
+}
 
 /**
  * Honeyroad app host. Serves MST metadata + dynamic fracture-image lookups.

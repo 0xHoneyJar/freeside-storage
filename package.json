@@ -12,9 +12,13 @@
   "scripts": {
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "clean": "pnpm -r clean"
+    "clean": "pnpm -r clean",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
-    "typescript": "^5.4.0"
+    "jsdom": "^24.1.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.1.0"
   }
 }

@@ -51,10 +51,10 @@ importers:
   packages/stickers:
     dependencies:
       '@freeside-storage/client':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../storage-client
       '@freeside-storage/protocol':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../protocol
       effect:
         specifier: ^3.10.0

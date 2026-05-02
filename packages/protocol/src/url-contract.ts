@@ -16,12 +16,17 @@
 /**
  * URL contract version. v1.0 was the authored shape for the
  * `mature-freeside-operator-and-cutover` cycle (assets-host only).
- * v1.1 (cross-collection-sovereignty cycle, 2026-05-01) introduces the
+ * v1.1 (cross-collection-sovereignty cycle, 2026-05-01) introduced the
  * companion sovereign metadata host + cf-function-kv-manifest backing +
- * 3 sovereignty migration phase IDs. Additive-only — no consumer breakage.
- * Breaking changes require a major bump + deprecation window per Section 7.
+ * 3 sovereignty migration phase IDs.
+ * v1.2 (mibera-family-sticker-substrate cycle, 2026-05-02) adds Mibera-family
+ * sub-collection prefixes (Shadow + MST under /Mibera/) for sticker substrate
+ * publishing — companion to the composable-sticker-substrate consumer-side
+ * cycle that shipped 2026-05-02 via freeside-storage#4 + mibera-dimensions#206.
+ * All bumps additive-only — no consumer breakage. Breaking changes require
+ * a major bump + deprecation window per Section 7.
  */
-export const URL_CONTRACT_VERSION = '1.1.0' as const;
+export const URL_CONTRACT_VERSION = '1.2.0' as const;
 
 /**
  * The hostname under which the URL contract resolves. v1 locks this to
@@ -57,9 +62,31 @@ export const METADATA_HOST: MetadataHost = 'metadata.0xhoneyjar.xyz';
 export type WorldSlug = 'Mibera' | 'Purupuru' | 'sprawl';
 
 /**
+ * Mibera-family sub-collection slugs. Treated as second-segment prefixes
+ * under the `Mibera` world so that paths take the shape
+ * `/Mibera/{SubCollection}/expressions/...` — operator's canonical 2026-05-02
+ * framing (sub-collections are NOT top-level worlds; they're nested under
+ * Mibera). Each sub-collection has its own `expressions/` (sticker) sub-tree
+ * mirroring Mibera's canonical sticker layout.
+ *
+ * Introduced in v1.2.0 (mibera-family-sticker-substrate cycle).
+ *
+ * Forward-compat: as new Mibera-family collections ship sticker substrate
+ * (Tarot, Candies, GIF, Fractures, …) they extend this union. The cycle
+ * `cross-collection-sovereignty-2026-05-01` already touches metadata for
+ * those four; sticker substrate is the next layer.
+ */
+export type MiberaSubCollection = 'Shadow' | 'MST';
+
+/**
  * Allowed category sub-prefixes per world. Each world enumerates its
  * canonical categories. Routes outside this enum are LEGACY-shape and may
  * exist for grace-window compatibility (per `legacyRoutes`).
+ *
+ * Mibera includes Mibera-family sub-collection slugs (Shadow, MST, …) as
+ * categories — see `MiberaSubCollection`. The path shape under those is
+ * `/Mibera/{SubCollection}/expressions/{version}/{tokenId}/{variant}/{expr}.webp`
+ * plus the `current.json` manifest at `/Mibera/{SubCollection}/expressions/`.
  */
 export type CategoryByWorld = {
   Mibera:
@@ -72,7 +99,8 @@ export type CategoryByWorld = {
     | 'generated'
     | 'expressions'
     | 'layers'
-    | 'archetypes';
+    | 'archetypes'
+    | MiberaSubCollection;
   Purupuru: 'cards' | 'layers' | 'archetypes' | 'sound';
   sprawl: 'rektdrop' | 'cubquests';
 };
@@ -98,7 +126,8 @@ export type MigrationPhaseId =
   | 'mibera-rekey'
   | 'mibera-sovereign-cutover'
   | 'mst-sovereign-cutover'
-  | 'cross-collection-sovereign';
+  | 'cross-collection-sovereign'
+  | 'mibera-family-sticker-substrate';
 
 /**
  * Backing layer for a route. v1 worlds back routes via S3, IPFS gateway,
@@ -271,6 +300,10 @@ export const URL_CONTRACT_V1: URLContract = {
         'expressions',
         'layers',
         'archetypes',
+        // v1.2.0 — Mibera-family sub-collection prefixes (sticker substrate).
+        // Path shape: /Mibera/{SubCollection}/expressions/...
+        'Shadow',
+        'MST',
       ],
       routes: [
         {
@@ -328,6 +361,71 @@ export const URL_CONTRACT_V1: URLContract = {
           migrationPhase: 'mibera-4',
           postPhaseBacking: 's3-thj-assets',
           description: 'IPFS-pinned reveal phase 1.1 (re-host in mibera-4)',
+        },
+        // v1.2.0 — Mibera-family sub-collection sticker substrate.
+        // Companion to composable-sticker-substrate-2026-05-01 consumer side
+        // (freeside-storage#4 + mibera-dimensions#206 SHIPPED 2026-05-02).
+        // Manifest shape matches StickerProfile from @freeside-storage/stickers.
+        //
+        // CONTRACT-AHEAD-OF-SUBSTRATE NOTE: routes below are registered before
+        // their substrate bytes exist. Consumers enumerating canonical routes
+        // for liveness should JOIN against `migrationPhases` and skip routes
+        // whose `migrationPhase.shippedAt === null`:
+        //   const phase = contract.migrationPhases.find(p => p.id === route.migrationPhase);
+        //   if (phase?.shippedAt == null) skip;  // not yet live
+        // Per shadow-traits.md (construct-mibera-codex), Shadow ≡ MST (alias —
+        // narrative name vs technical contract symbol "Mibera Shadow Traits").
+        // Both path conventions registered for transitional consumer compat.
+        {
+          world: 'Mibera',
+          category: 'Shadow',
+          pattern: 'expressions/current.json',
+          currentBacking: 's3-thj-assets',
+          migrationPhase: 'mibera-family-sticker-substrate',
+          postPhaseBacking: 's3-thj-assets',
+          description:
+            'Mibera Shadow sticker manifest — StickerProfile shape per ' +
+            '@freeside-storage/stickers v0.0.x. Consumer-side wired but ' +
+            'substrate-side pending (returns 403 until M-1 bucket policy + ' +
+            'M-3 manifest publish lands).',
+        },
+        {
+          world: 'Mibera',
+          category: 'Shadow',
+          pattern: 'expressions/{version}/{tokenId}/{variant}/{expr}.webp',
+          currentBacking: 's3-thj-assets',
+          migrationPhase: 'mibera-family-sticker-substrate',
+          postPhaseBacking: 's3-thj-assets',
+          description:
+            'Mibera Shadow per-token sticker render. Default variant: ' +
+            '`transparent`. `{version}` matches manifest.version (e.g. v1). ' +
+            '`{expr}` is one of the manifest.variants[*] expression slugs.',
+        },
+        {
+          world: 'Mibera',
+          category: 'MST',
+          pattern: 'expressions/current.json',
+          currentBacking: 's3-thj-assets',
+          migrationPhase: 'mibera-family-sticker-substrate',
+          postPhaseBacking: 's3-thj-assets',
+          description:
+            'MST sticker manifest — 3219 known tokens. MST = "Mibera Shadow ' +
+            'Traits" (on-chain symbol; narratively "Shadow" — see Shadow ' +
+            'category routes above for the alias path). Sovereign metadata at ' +
+            'metadata.0xhoneyjar.xyz/mibera/mst/{N} (shipped 2026-05-01 via ' +
+            'mst-sovereign-cutover); sticker assets are the next layer.',
+        },
+        {
+          world: 'Mibera',
+          category: 'MST',
+          pattern: 'expressions/{version}/{tokenId}/{variant}/{expr}.webp',
+          currentBacking: 's3-thj-assets',
+          migrationPhase: 'mibera-family-sticker-substrate',
+          postPhaseBacking: 's3-thj-assets',
+          description:
+            'MST per-token sticker render (alias of Shadow path above — same ' +
+            'collection). Mirrors the Mibera convention. Source generation ' +
+            'pipeline TBD per M-2 of the substrate handoff.',
         },
       ],
       legacyRoutes: [
@@ -469,6 +567,26 @@ export const URL_CONTRACT_V1: URLContract = {
         'metadata.0xhoneyjar.xyz/mibera/tarot/{N}',
         'metadata.0xhoneyjar.xyz/mibera/gif/{N}',
         'metadata.0xhoneyjar.xyz/mibera/candies/{id}',
+      ],
+      shippedAt: null,
+    },
+    {
+      id: 'mibera-family-sticker-substrate',
+      cycleName: 'mibera-family-sticker-substrate-2026-05-02',
+      scope:
+        'Publish Mibera-family sub-collection sticker substrate at ' +
+        '/Mibera/{SubCollection}/expressions/... — Shadow + MST first; ' +
+        'Tarot/Candies/GIF follow as their generation pipelines land. ' +
+        'Companion to composable-sticker-substrate-2026-05-01 consumer side ' +
+        '(SHIPPED 2026-05-02 via freeside-storage#4 + mibera-dimensions#206). ' +
+        'Substrate-side deliverables: M-1 bucket policy · M-2 generation pipeline ' +
+        '· M-3 manifest publish (current.json) · M-4 URL contract (this PR) · ' +
+        'M-5 verification probes.',
+      affectedRoutes: [
+        'Mibera/Shadow/expressions/current.json',
+        'Mibera/Shadow/expressions/{version}/{tokenId}/{variant}/{expr}.webp',
+        'Mibera/MST/expressions/current.json',
+        'Mibera/MST/expressions/{version}/{tokenId}/{variant}/{expr}.webp',
       ],
       shippedAt: null,
     },

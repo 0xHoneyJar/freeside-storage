@@ -36,6 +36,7 @@ export {
   type CategoryByWorld,
   type LegacyRoute,
   type MetadataHost,
+  type MiberaSubCollection,
   type MigrationPhase,
   type MigrationPhaseId,
   type RouteBacking,

@@ -34,6 +34,10 @@ importers:
         version: 5.4.2
 
   packages/protocol:
+    dependencies:
+      effect:
+        specifier: ^3.10.0
+        version: 3.10.0
     devDependencies:
       typescript:
         specifier: ^5.4.0

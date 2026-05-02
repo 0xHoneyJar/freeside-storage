@@ -1,0 +1,9 @@
+{
+  "version": "v2",
+  "generatedAt": "2026-03-08T21:53:13Z",
+  "tokenCount": 9958,
+  "expressionCount": 15,
+  "skippedTokenIds": [],
+  "variants": ["transparent", "bg"],
+  "defaultVariant": "transparent"
+}

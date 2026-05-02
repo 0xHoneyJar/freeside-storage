@@ -48,10 +48,10 @@ importers:
   packages/stickers:
     dependencies:
       '@freeside-storage/client':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../storage-client
       '@freeside-storage/protocol':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../protocol
       effect:
         specifier: ^3.10.0
@@ -60,6 +60,9 @@ importers:
       '@types/node':
         specifier: ^20.12.0
         version: 20.12.0
+      jsdom:
+        specifier: ^24.1.0
+        version: 24.1.0
       typescript:
         specifier: ^5.4.0
         version: 5.4.2

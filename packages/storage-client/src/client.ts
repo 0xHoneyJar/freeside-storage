@@ -74,11 +74,13 @@ export function miberaMetadataURL(tokenId: number): string {
 }
 
 /**
- * Mibera Shadows (MST) metadata URL. Served from honeyroad's API; the route
- * handler emits sovereign image URLs after PR honeyroad#91.
+ * Mibera Shadows (MST) metadata URL. All MST tokens resolve via the sovereign
+ * manifest pattern (CF Function + KV pointer) under the world-scoped path
+ * `/{world}/{collection}/{N}` provisioned in Cutover B of the
+ * migrate-mst-sovereignty cycle (2026-05-01).
  */
 export function mstMetadataURL(tokenId: number): string {
-  return `${HONEYROAD_HOST}/api/vm/${tokenId}`;
+  return `${METADATA_HOST}/mibera/mst/${tokenId}`;
 }
 
 /**

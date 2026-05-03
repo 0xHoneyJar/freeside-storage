@@ -54,6 +54,31 @@ Per [[freeside-modules-as-installables]]: design with module boundaries from day
 
 If the metadata-module-placement design decides this module isn't the right home for some concerns (e.g., rendering belongs in `freeside-worlds` instead), the stub re-shapes accordingly — no content has accumulated to fight about.
 
+## Promotion triggers (codified · cycle 001 phase 4)
+
+Stub-to-foundation promotion happens when **EITHER** trigger fires. Each has an observable signal so a future tender doesn't have to re-derive when promotion is earned.
+
+### Trigger A · Design crystallization
+
+The parallel `metadata-module-placement` design session lands sufficient signal:
+- `StorageAdapter` interface stabilizes (read/write/list/sign/expire methods, pluggable typed clients)
+- URL contract for sovereign metadata serving freezes (per [[metadata-as-integration-contract]])
+- Per-pattern layout templates are named (NFT collection layout, per-world music layout, per-Door asset bundles)
+
+Observable signal: `~/bonfire/grimoires/bonfire/context/metadata-module-placement.md` (or successor) reaches a "design locked" state with the three pieces above. The stub locks via cycle.
+
+### Trigger B · Friction reaches a second instance
+
+An operator hits a 502MB-music-style wall a SECOND time on a different collection or world. The first instance was Honey Road ([loa-freeside#167](https://github.com/0xHoneyJar/loa-freeside/issues/167)). The second instance — whichever world it is — is the signal that ad-hoc fixes have stopped scaling.
+
+Observable signal: an operator surfaces some variant of *"this collection's metadata serving is broken because [...]"* AND the fix would benefit ≥2 worlds going forward. Not the first instance — the **second**.
+
+### Either trigger is sufficient
+
+Whichever fires first owns the cycle that promotes the stub to foundation. Cycle scope: extract the relevant pieces from `loa-freeside`, instantiate the package layout per `docs/ADR-001-package-layout.md`, document the cutover in `docs/INTEGRATION-PATH.md`, ship.
+
+Codified during ecosystem-health cycle 001 (TEND mode · phase 4 clarification gap ④). See [[constructs-ecosystem-health-cycle]] for cycle context.
+
 ## Reference
 
 - Sister kickoff: `~/bonfire/grimoires/bonfire/context/metadata-module-placement.md`

@@ -1,0 +1,117 @@
+# Cookbook
+
+Copy-paste recipes for the 4 most common consumer shapes. All recipes assume `AssetServiceLive` is provided at the layer boundary.
+
+## Discord 8MB attachment
+
+The Discord file-upload ceiling is 8MB (Nitro: 25-100MB; assume the floor). Our bot uses `bytes-on-the-wire` via webhook attachment per the environment-aware-composition doctrine — Discord automod can block external URLs.
+
+```ts
+import { Effect } from "effect";
+import { AssetService } from "@0xhoneyjar/asset-pipeline";
+
+const discordAttach = {
+  maxBytes: 8 * 1024 * 1024,
+  acceptFormats: ["webp", "png"] as const,
+  consumerLabel: "freeside-characters:discord-attach:v1",
+};
+
+export const fetchForDiscord = (canonicalUrl: string) =>
+  Effect.gen(function* () {
+    const svc = yield* AssetService;
+    return yield* svc.fetchOptimal({ canonicalUrl }, discordAttach);
+  });
+```
+
+Then attach `variant.bytes` directly to the webhook's `files[]` array — never paste the URL.
+
+## NFT PFP — 256px webp <100KB
+
+Mobile-3G PFP load <500ms p95 over a 24h sample is the target.
+
+```ts
+const pfp = {
+  maxBytes: 100 * 1024,
+  acceptFormats: ["webp"] as const,
+  maxWidth: 256,
+  consumerLabel: "mibera-dimensions:pfp:v1",
+};
+
+export const fetchPfp = (tokenId: number) =>
+  Effect.gen(function* () {
+    const svc = yield* AssetService;
+    return yield* svc.fetchOptimal(
+      { canonicalUrl: pfpCanonical(tokenId) },
+      pfp,
+    );
+  });
+```
+
+## Marketplace card — 1024px webp <1MB
+
+Preview tile. Grid scroll budget; webp + 1024w is the sweet spot.
+
+```ts
+const preview = {
+  maxBytes: 1024 * 1024,
+  acceptFormats: ["webp"] as const,
+  maxWidth: 1024,
+  consumerLabel: "mibera-dimensions:preview:v1",
+};
+```
+
+## GitHub Camo proxy — 5MB
+
+README/issue image budget. The `:v<N>` suffix lets you flip to `:v2` later if rendering changes.
+
+```ts
+const githubCamo = {
+  maxBytes: 5 * 1024 * 1024,
+  acceptFormats: ["webp", "png"] as const,
+  consumerLabel: "docs:github-readme:v1",
+};
+```
+
+## Boot-time prefetch (44 grails)
+
+`prefetch` never throws — partial failures land in `result.results[]`.
+
+```ts
+import { Effect } from "effect";
+import { AssetService } from "@0xhoneyjar/asset-pipeline";
+
+const grailPrefetch = {
+  maxBytes: 8 * 1024 * 1024,
+  acceptFormats: ["webp", "png"] as const,
+  consumerLabel: "freeside-characters:grail-prefetch:v1",
+};
+
+export const warmGrailCache = (refs: ReadonlyArray<AssetReference>) =>
+  Effect.gen(function* () {
+    const svc = yield* AssetService;
+    const result = yield* svc.prefetch(refs, grailPrefetch, {
+      concurrency: 4,
+      timeoutMs: 10_000,
+    });
+    console.log(
+      `[grail-cache] ok=${result.stats.succeeded}/${result.stats.total}`,
+    );
+    return result;
+  });
+```
+
+## Graceful BudgetExceeded retry
+
+Budget-exceeded is recoverable — retry with a tighter format.
+
+```ts
+import { Effect } from "effect";
+
+const program = svc.fetchOptimal(ref, withWebp).pipe(
+  Effect.catchTag("BudgetExceeded", () =>
+    svc.fetchOptimal(ref, withPngOnly),
+  ),
+);
+```
+
+The tagged-error narrowing is the load-bearing primitive; see ADR-11 in the SDD for the full taxonomy.

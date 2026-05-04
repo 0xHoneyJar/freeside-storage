@@ -1,0 +1,65 @@
+# Label Registry
+
+Authoritative list of `<repo>:<surface>[:v<N>]` consumer labels for the asset-pipeline. Adding a new label requires a PR to update this page first.
+
+## Format
+
+`<repo>:<surface>[:v<N>]`
+
+| Component | Rules | Examples |
+|---|---|---|
+| `<repo>` | lowercase, hyphens allowed | `freeside-characters`, `mibera-dimensions`, `score-mibera` |
+| `<surface>` | lowercase, hyphens allowed | `discord-attach`, `grail-prefetch`, `pfp`, `wallet-card` |
+| `<N>` (optional) | digits only, no decimals | `v1`, `v2`, `v3` |
+
+The `:v<N>` suffix is the rollback flag (ADR-13). Bumping `:v1` → `:v2` flips the cache namespace cleanly without touching the Lambda.
+
+Schema regex: `^[a-z0-9-]+:[a-z0-9-]+(?::v[0-9]+)?$`
+
+## Registered labels (V1)
+
+### `freeside-characters` (Discord bot)
+
+| Label | Constraint | Goal |
+|---|---|---|
+| `freeside-characters:discord-attach:v1` | `maxBytes: 8MB, acceptFormats: ['webp','png']` | G-2: 95% Discord attach success |
+| `freeside-characters:grail-prefetch:v1` | `maxBytes: 8MB, acceptFormats: ['webp','png']` | G-1: 90% boot-cache hit rate |
+
+### `mibera-dimensions` (NFT PFP / preview / full)
+
+| Label | Constraint | Goal |
+|---|---|---|
+| `mibera-dimensions:pfp:v1` | `maxBytes: 100KB, maxWidth: 256, acceptFormats: ['webp']` | G-6: <500ms p95 mobile-3G |
+| `mibera-dimensions:preview:v1` | `maxBytes: 1MB, maxWidth: 1024, acceptFormats: ['webp']` | preview tile load |
+| `mibera-dimensions:full:v1` | `maxBytes: 10MB, acceptFormats: ['webp','png']` | marketplace full-resolution display |
+
+### Phase 3+ (deferred — earn own kickoff)
+
+| Label | Status | Notes |
+|---|---|---|
+| `score-mibera:wallet-card:v1` | DEFERRED | wallet score thumbnail |
+| `purupuru:world-avatar:v1` | DEFERRED | purupuru world avatar |
+
+## Adding a new label
+
+1. Open a PR in `0xHoneyJar/freeside-storage` updating this page (`docs/pages/label-registry.mdx`).
+2. Add the new label row to the table above with constraint + goal.
+3. CI lint will fail any consumer code referencing an unregistered label.
+4. Approval is a formality — the registry is informational, not gating. The PR review is the contract.
+
+## Rollback discipline (ADR-13)
+
+The `:v<N>` suffix is a caller-side flag. Lambda transform behavior is the SAME — different `consumerLabel`s are different cache namespaces.
+
+Anti-pattern: server-side feature flags inside the Lambda. (Cache invalidation nightmare · breaks immutable contract.) All version differentiation lives at the SDK + cache layer.
+
+To roll back:
+
+1. Consumer flips `consumerLabel: 'foo:bar:v1'` → `'foo:bar:v2'`.
+2. Cache hits for `:v2` are zero (clean slate).
+3. Telemetry separates `v1` vs `v2` metrics automatically.
+4. If `:v2` is healthier, deprecate `:v1` by removing references.
+
+## Registry reservations
+
+Labels prefixed with `test:` (e.g. `test:fixture:v1`) are reserved for unit tests and CI. They never resolve in production telemetry.

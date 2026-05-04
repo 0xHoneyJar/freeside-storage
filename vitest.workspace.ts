@@ -16,6 +16,11 @@ export default defineWorkspace([
       name: "jsdom",
       environment: "jsdom",
       include: ["packages/*/tests/**/*.test.ts"],
+      server: {
+        deps: {
+          inline: [/^@freeside-storage\//, /^@0xhoneyjar\//, "effect"],
+        },
+      },
     },
   },
 ]);

@@ -1,0 +1,75 @@
+{
+  "name": "@0xhoneyjar/asset-pipeline",
+  "version": "0.1.0",
+  "description": "Self-hosted Cloudinary/Vercel-Image substrate. Metadata declares variants · Lambda materializes them · consumers READ. Effect-Schema-sealed AssetService for Discord/PFP/marketplace constraints. Per asset-pipeline-substrate cycle B (cycle-asset-pipeline-substrate-2026-05-03).",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "import": "./dist/schema/index.js"
+    },
+    "./service": {
+      "types": "./dist/service/index.d.ts",
+      "import": "./dist/service/index.js"
+    },
+    "./parse": {
+      "types": "./dist/parse/index.d.ts",
+      "import": "./dist/parse/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "pnpm test:node && pnpm test:jsdom",
+    "test:node": "vitest run --config vitest.config.ts",
+    "test:jsdom": "vitest run --config vitest.config.jsdom.ts",
+    "test:watch": "vitest --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@freeside-storage/protocol": "workspace:*"
+  },
+  "peerDependencies": {
+    "effect": "^3.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "effect": "^3.10.0",
+    "jsdom": "^24.1.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xHoneyJar/freeside-storage.git",
+    "directory": "packages/asset-pipeline"
+  },
+  "keywords": [
+    "asset-pipeline",
+    "cdn",
+    "image-cdn",
+    "effect-schema",
+    "freeside",
+    "0xhoneyjar"
+  ],
+  "homepage": "https://codex.0xhoneyjar.xyz/asset-pipeline",
+  "bugs": {
+    "url": "https://github.com/0xHoneyJar/freeside-storage/issues"
+  }
+}

@@ -1,0 +1,73 @@
+# `@0xhoneyjar/asset-pipeline`
+
+Self-hosted Cloudinary/Vercel-Image substrate. Metadata declares variants · Lambda materializes them · consumers READ.
+
+## Install
+
+```bash
+pnpm add @0xhoneyjar/asset-pipeline effect
+```
+
+`effect ^3.10.0` is a peer dependency.
+
+## 5-minute getting started
+
+```ts
+import { Effect } from "effect";
+import { AssetService, AssetServiceLive } from "@0xhoneyjar/asset-pipeline";
+
+// 1. Construct a reference + a constraint
+const ref = {
+  canonicalUrl: "https://assets.0xhoneyjar.xyz/Mibera/grails/cancer.png",
+};
+
+const discordAttach = {
+  maxBytes: 8 * 1024 * 1024,
+  acceptFormats: ["webp", "png"] as const,
+  consumerLabel: "freeside-characters:discord-attach:v1",
+};
+
+// 2. Run the service
+const program = Effect.gen(function* () {
+  const svc = yield* AssetService;
+  return yield* svc.fetchOptimal(ref, discordAttach);
+});
+
+const variant = await Effect.runPromise(
+  program.pipe(Effect.provide(AssetServiceLive)),
+);
+
+// 3. Use the bytes
+console.log(variant.format, variant.byteLength, variant.source);
+// → 'webp' 234581 'cdn-mirror'
+```
+
+## What's it for?
+
+| Consumer | Constraint | Why |
+|---|---|---|
+| Discord bot attachment | `{maxBytes: 8MB, acceptFormats: ['webp','png']}` | Discord automod blocks our raw URL · attach bytes |
+| NFT PFP (mibera-dimensions) | `{maxBytes: 100KB, maxWidth: 256, acceptFormats: ['webp']}` | Mobile-3G load <500ms p95 |
+| Marketplace card | `{maxBytes: 1MB, maxWidth: 1024, acceptFormats: ['webp']}` | Preview tile · grid scroll |
+| GitHub Camo proxy | `{maxBytes: 5MB, acceptFormats: ['webp','png']}` | README image · 5MB ceiling |
+
+## Contract layers
+
+The package composes 3 sealed contracts:
+
+1. `AssetReference` — what you ask for (canonical URL · optional refId)
+2. `ConsumerConstraint` — what your environment requires (maxBytes · format prefs · label)
+3. `AssetVariant` — what you receive (bytes · format · provenance)
+
+Errors are an Effect tagged-error union (7 variants — see [API reference](#)).
+
+## Next steps
+
+- [Cookbook](/cookbook) — copy-paste recipes for the 4 most common consumer shapes
+- [URL DSL](/url-dsl) — how to compose transform URLs without the SDK
+- [Migration guide](/migration) — moving from flat `image: "url"` → struct shape
+- [Label registry](/labels) — authoritative `<repo>:<surface>[:v<N>]` list
+
+## Status
+
+`v0.1.0` — cycle B sprint-1 P0 scaffolding. Live consumer wiring lands in P1+.

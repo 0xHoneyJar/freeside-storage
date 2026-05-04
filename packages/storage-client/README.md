@@ -69,7 +69,7 @@ Each `pipe` step is a composable layer. Same primitives across honeyroad, dimens
 
 ## Substrate-truth resolution
 
-`URL_CONTRACT_V1` (from `@freeside-storage/protocol`) is the source of truth. Builders return URLs where bytes live TODAY — both canonical `routes` and `legacyRoutes` are consumed.
+`URL_CONTRACT_V1` (from `@0xhoneyjar/freeside-protocol`) is the source of truth. Builders return URLs where bytes live TODAY — both canonical `routes` and `legacyRoutes` are consumed.
 
 Mibera image URLs resolve via the `reveal_phase{N}/images/{hash}.png` legacyRoute shape (where bytes live), since URL_CONTRACT_V1 marks the canonical `Mibera/final/{tokenId}.png` as gated by the optional mibera-2 polish cycle.
 

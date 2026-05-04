@@ -1,5 +1,5 @@
 /**
- * S3 implementation of `@freeside-storage/protocol`'s StorageAdapter, plus
+ * S3 implementation of `@0xhoneyjar/freeside-protocol`'s StorageAdapter, plus
  * S3-specific extensions (`presignedURL`, `setACL`, `invalidateCDN`).
  *
  * Per SDD §3.1 + §6.5. Per ADR-001 this is the only adapter that ships in
@@ -29,7 +29,7 @@ import type {
   SyncOptions,
   SyncResult,
   VerifyParityOptions,
-} from '@freeside-storage/protocol';
+} from '@0xhoneyjar/freeside-protocol';
 
 export interface S3AdapterConfig {
   /** Bucket name (e.g. "thj-assets") */

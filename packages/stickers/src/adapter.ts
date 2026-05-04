@@ -60,7 +60,7 @@ export type GlobalManifest = {
 
 /**
  * Per-world manifest URLs. Anchored to `assets.0xhoneyjar.xyz` per
- * URL_CONTRACT_V1 in `@freeside-storage/protocol`. The "grail" world points
+ * URL_CONTRACT_V1 in `@0xhoneyjar/freeside-protocol`. The "grail" world points
  * at the Mibera manifest since grails belong to that collection — but
  * `lookupSticker` short-circuits to `Skipped/grail-no-stickers` for any
  * profile with `isGrail: true`, so the grail manifestUrl is informational.

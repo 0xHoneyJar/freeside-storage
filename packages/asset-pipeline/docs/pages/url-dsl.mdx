@@ -1,0 +1,82 @@
+# URL DSL Reference
+
+For agents and external builders that don't want to import the SDK. Compose the same URLs the SDK would.
+
+## Endpoint
+
+```
+https://assets.0xhoneyjar.xyz/_optimize?path={canonical_path}&w={width}&fmt={format}&q={quality}
+```
+
+## Parameters
+
+| Param | Required | Range | Notes |
+|---|---|---|---|
+| `path` | yes | allowlisted prefix | Must start with `Mibera/grails/`, `Mibera/Shadow/`, `Mibera/MST/`, `reveal_phase8/images/`, `Purupuru/`, or `sprawl/` |
+| `w` | yes | `[16, 4096]` | Target width in px |
+| `fmt` | yes | `webp` \| `png` \| `avif` | Output format. `jpeg` not produced (input only) |
+| `q` | no | `[1, 100]`, default `80` | Quality. 80 is the cookbook default |
+| `maxBytes` | no | `> 0` | Informational hint. The Lambda may emit smaller; ignored if it would force `> server-configured-max` |
+
+## Cloudinary mapping
+
+The grammar matches Cloudinary's parameter names so a future vendor swap is a host-flip not a schema-flip:
+
+| Cloudinary | Our DSL | Notes |
+|---|---|---|
+| `c_fill,w_400` | `?w=400` | Crop strategy not exposed in V1 (always `c_limit` semantics) |
+| `f_auto,q_auto` | `?fmt=webp&q=80` | Explicit · no Accept-header negotiation in V1 |
+| `f_webp,q_80` | `?fmt=webp&q=80` | |
+| n/a | `?maxBytes=8388608` | Extension · informational hint |
+
+## Worked examples
+
+### Discord 8MB attachment (cancer.png → 1024 webp)
+
+```bash
+curl -o cancer.webp \
+  "https://assets.0xhoneyjar.xyz/_optimize?path=Mibera/grails/cancer.png&w=1024&fmt=webp&q=80"
+```
+
+### Mobile PFP (token #1234 → 256 webp)
+
+```bash
+curl -o pfp.webp \
+  "https://assets.0xhoneyjar.xyz/_optimize?path=reveal_phase8/images/abc123.png&w=256&fmt=webp&q=80"
+```
+
+### Inspect cache headers
+
+```bash
+curl -sI "https://assets.0xhoneyjar.xyz/_optimize?path=Mibera/grails/cancer.png&w=256&fmt=webp&q=80" \
+  | grep -E '^(content-type|cache-control|x-asset-source|x-variant-bytes):'
+```
+
+Expected response headers:
+
+```
+content-type: image/webp
+cache-control: public, max-age=31536000, immutable
+x-asset-source: cdn-mirror
+x-variant-bytes: 234581
+```
+
+## Error responses
+
+| Status | Body | Cause |
+|---|---|---|
+| 400 | `{"error":"bad-query","field":"w"}` | `w` outside `[16, 4096]` or non-numeric |
+| 403 | `{"error":"path-denied"}` | Path not in allowlist (NFR-3) |
+| 404 | `{"error":"canonical-not-found"}` | S3.GetObject returned 404 |
+| 415 | `{"error":"unsupported-format"}` | `fmt` not in `webp`/`png`/`avif` |
+| 502 | `{"error":"transform-failed"}` | sharp pipeline failure (logs in CloudWatch) |
+
+## Caching contract
+
+Variants are immutable per-input. The cache key is the `(path, w, fmt, q)` tuple — `maxBytes` is excluded (informational, server-deterministic output).
+
+Cache TTL: `max-age=31536000` (1 year) + `immutable`. **Never invalidated.** If canonical bytes change, the canonical URL itself must change (per the metadata-as-integration-contract doctrine).
+
+## Bypassing the cache
+
+Don't. There is no escape hatch. If you need to force-refresh, the answer is to publish a new canonical URL — the cache is a feature of the contract, not an accident.

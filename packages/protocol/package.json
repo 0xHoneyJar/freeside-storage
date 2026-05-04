@@ -1,5 +1,5 @@
 {
-  "name": "@freeside-storage/protocol",
+  "name": "@0xhoneyjar/freeside-protocol",
   "version": "0.0.1",
   "private": true,
   "description": "Sealed schemas for freeside-storage — StorageAdapter common interface + URL contract + types. Lean instance-1 (per ADR-001).",

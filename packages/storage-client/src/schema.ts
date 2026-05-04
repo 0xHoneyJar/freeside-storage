@@ -1,7 +1,7 @@
 /**
  * Effect Schema input validators for @freeside-storage/client.
  *
- * URL_CONTRACT_V1 (from @freeside-storage/protocol) is the source of truth for
+ * URL_CONTRACT_V1 (from @0xhoneyjar/freeside-protocol) is the source of truth for
  * URL shapes; this module narrows raw inputs (number, string) to branded types
  * that builders accept. Bad inputs surface AT THE BOUNDARY with a typed error,
  * not three layers deep in a render tree.

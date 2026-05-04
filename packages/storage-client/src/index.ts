@@ -2,7 +2,7 @@
  * @freeside-storage/client — type-safe URL builders + codex consumers for the
  * freeside-storage URL contract.
  *
- * `URL_CONTRACT_V1` (from @freeside-storage/protocol) is the source of truth.
+ * `URL_CONTRACT_V1` (from @0xhoneyjar/freeside-protocol) is the source of truth.
  * Effect Schema validates inputs and outputs at the boundary; typed errors
  * (Data.TaggedError) make failure modes first-class. Builders return URLs
  * resolving to where bytes live TODAY (substrate-truth) — both canonical
@@ -42,7 +42,7 @@ export {
 export {
   Attribute,
   MetadataDocument,
-} from "@freeside-storage/protocol";
+} from "@0xhoneyjar/freeside-protocol";
 
 export {
   lookupGrail,

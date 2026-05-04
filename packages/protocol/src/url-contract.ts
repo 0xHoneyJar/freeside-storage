@@ -23,10 +23,16 @@
  * sub-collection prefixes (Shadow + MST under /Mibera/) for sticker substrate
  * publishing — companion to the composable-sticker-substrate consumer-side
  * cycle that shipped 2026-05-02 via freeside-storage#4 + mibera-dimensions#206.
+ * v1.3 (asset-pipeline-substrate cycle B, 2026-05-03) adds the `MetadataImage`
+ * Union (flat-string OR struct{canonical, variants, transform, capabilities})
+ * on `MetadataDocument.image` plus optional `animation_url` sibling
+ * (FR-8 v2 forward-compat). Companion to the @0xhoneyjar/asset-pipeline
+ * NPM package — consumers that read `meta.image` as a flat string keep working
+ * unchanged via the `parseImage` helper (Risk 5 mitigation, see ./parse-image.ts).
  * All bumps additive-only — no consumer breakage. Breaking changes require
  * a major bump + deprecation window per Section 7.
  */
-export const URL_CONTRACT_VERSION = '1.2.0' as const;
+export const URL_CONTRACT_VERSION = '1.3.0' as const;
 
 /**
  * The hostname under which the URL contract resolves. v1 locks this to
@@ -127,7 +133,8 @@ export type MigrationPhaseId =
   | 'mibera-sovereign-cutover'
   | 'mst-sovereign-cutover'
   | 'cross-collection-sovereign'
-  | 'mibera-family-sticker-substrate';
+  | 'mibera-family-sticker-substrate'
+  | 'asset-pipeline-substrate-v1';
 
 /**
  * Backing layer for a route. v1 worlds back routes via S3, IPFS gateway,
@@ -587,6 +594,24 @@ export const URL_CONTRACT_V1: URLContract = {
         'Mibera/Shadow/expressions/{version}/{tokenId}/{variant}/{expr}.webp',
         'Mibera/MST/expressions/current.json',
         'Mibera/MST/expressions/{version}/{tokenId}/{variant}/{expr}.webp',
+      ],
+      shippedAt: null,
+    },
+    {
+      id: 'asset-pipeline-substrate-v1',
+      cycleName: 'asset-pipeline-substrate-2026-05-03',
+      scope:
+        'Add MetadataImage union (flat-string | struct{canonical, variants, ' +
+        'transform, capabilities}) on MetadataDocument.image plus optional ' +
+        'animation_url sibling (FR-8 v2 forward-compat). URL_CONTRACT v1.3.0 ' +
+        'additive only — consumers reading meta.image as flat string keep ' +
+        'working via the parseImage helper. Companion to the ' +
+        '@0xhoneyjar/asset-pipeline NPM package shipping the AssetService ' +
+        'substrate (Lambda /_optimize transform · sibling-name webp variants · ' +
+        'consumer-constraint-driven materialization).',
+      affectedRoutes: [
+        'metadata.0xhoneyjar.xyz/mibera/{N}',
+        'metadata.0xhoneyjar.xyz/mibera/mst/{N}',
       ],
       shippedAt: null,
     },

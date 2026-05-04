@@ -16,6 +16,9 @@ importers:
 
   packages/adapters/s3:
     dependencies:
+      '@0xhoneyjar/freeside-protocol':
+        specifier: workspace:*
+        version: link:../../protocol
       '@aws-sdk/client-cloudfront':
         specifier: ^3.620.0
         version: 3.620.0
@@ -28,9 +31,6 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.620.0
         version: 3.620.0
-      '@freeside-storage/protocol':
-        specifier: workspace:*
-        version: link:../../protocol
     devDependencies:
       '@types/node':
         specifier: ^20.12.0
@@ -38,6 +38,28 @@ importers:
       typescript:
         specifier: ^5.4.0
         version: 5.4.2
+
+  packages/asset-pipeline:
+    dependencies:
+      '@0xhoneyjar/freeside-protocol':
+        specifier: workspace:*
+        version: link:../protocol
+    devDependencies:
+      '@types/node':
+        specifier: ^20.12.0
+        version: 20.12.0
+      effect:
+        specifier: ^3.10.0
+        version: 3.10.0
+      jsdom:
+        specifier: ^24.1.0
+        version: 24.1.0
+      typescript:
+        specifier: ^5.4.0
+        version: 5.4.2
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.0(@types/node@20.12.0)(jsdom@24.1.0)
 
   packages/protocol:
     devDependencies:
@@ -50,12 +72,12 @@ importers:
 
   packages/stickers:
     dependencies:
+      '@0xhoneyjar/freeside-protocol':
+        specifier: workspace:*
+        version: link:../protocol
       '@freeside-storage/client':
         specifier: workspace:*
         version: link:../storage-client
-      '@freeside-storage/protocol':
-        specifier: workspace:*
-        version: link:../protocol
       effect:
         specifier: ^3.10.0
         version: 3.10.0
@@ -75,7 +97,7 @@ importers:
 
   packages/storage-client:
     dependencies:
-      '@freeside-storage/protocol':
+      '@0xhoneyjar/freeside-protocol':
         specifier: workspace:*
         version: link:../protocol
       effect:

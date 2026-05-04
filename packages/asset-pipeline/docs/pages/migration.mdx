@@ -1,0 +1,101 @@
+# Migration Guide — flat string → struct shape
+
+URL_CONTRACT v1.3.0 extended `MetadataDocument.image` from a flat URL string to a union: flat-string OR struct shape.
+
+```ts
+// v1.2 and earlier (still works)
+{ image: "https://assets.0xhoneyjar.xyz/Mibera/grails/cancer.png" }
+
+// v1.3+
+{
+  image: {
+    canonical: "https://assets.0xhoneyjar.xyz/Mibera/grails/cancer.png",
+    variants: {
+      "webp@1600": "https://.../cancer-1600.webp",
+      "webp@1024": "https://.../cancer-1024.webp",
+      "webp@256":  "https://.../cancer-256.webp"
+    },
+    transform: "https://assets.0xhoneyjar.xyz/_optimize",
+    capabilities: ["webp", "resize"]
+  }
+}
+```
+
+## The invariant
+
+Existing code reading `meta.image` as a flat URL keeps working unchanged. The `parseImage` helper normalizes both shapes to a struct view.
+
+```tsx
+// Legacy code — still valid for v1.2 payloads
+<img src={meta.image as string} />
+```
+
+But for v1.3+ shapes, this would render `[object Object]`. The fix:
+
+```tsx
+import { parseImage } from "@0xhoneyjar/freeside-protocol";
+
+<img src={parseImage(meta.image).canonical} />
+```
+
+## Internal code: always parseImage
+
+Code inside this org (freeside-storage workspace, mibera-dimensions, freeside-characters) must use `parseImage` everywhere. This is enforced by:
+
+1. CI lint (planned · cycle B sprint-3)
+2. Code review — flat-string `meta.image` reads should fail review for new code
+3. The benefits — once you have `parsed.variants` and `parsed.transform`, you can pick the right size for the constraint
+
+## External code: graceful adoption
+
+External NFT marketplaces (OpenSea, Magic Eden) read `meta.image` as a string today. The v1.3 union is **type-compatible** with the legacy shape — Schema decode succeeds for both.
+
+If you maintain an NFT consumer outside the org:
+
+1. Take no action — flat-string consumers keep working.
+2. Or: adopt `parseImage` to gain access to the variant ladder.
+3. Or: continue reading `.image` as a flat string. The consumer-side migration is your call, not ours.
+
+## Effect.Schema decode pattern
+
+At the network boundary (e.g. when fetching `metadata.0xhoneyjar.xyz/mibera/{N}`):
+
+```ts
+import { Effect, Schema } from "effect";
+import { MetadataDocument, parseImage } from "@0xhoneyjar/freeside-protocol";
+
+const parsed = await Effect.runPromise(
+  Schema.decodeUnknown(MetadataDocument)(json).pipe(
+    Effect.map((doc) => ({
+      ...doc,
+      image: parseImage(doc.image), // always struct shape downstream
+    })),
+  ),
+);
+```
+
+Or use `decodeAndParseImage` for just the image field:
+
+```ts
+import { decodeAndParseImage } from "@0xhoneyjar/freeside-protocol";
+
+const parsedImage = await Effect.runPromise(
+  decodeAndParseImage(json.image),
+);
+// parsedImage: { canonical: string, variants?, transform?, capabilities? }
+```
+
+## animation_url sibling (FR-8 v2 forward-compat)
+
+v1.3 also adds an optional `animation_url` sibling for animated/video pointers (per OpenSea metadata convention).
+
+```ts
+{
+  name: "Mibera #1234",
+  description: "...",
+  image: { canonical: "...", variants: {...} },
+  animation_url: "https://.../intro.mp4"
+}
+```
+
+Animated/video formats are NOT in the asset-pipeline V1 scope — `animation_url` is a forward-compat hook for marketplaces that already render it. The asset-pipeline schema enforces stills-only (PNG/WebP/AVIF) per ADR-4.

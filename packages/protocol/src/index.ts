@@ -1,5 +1,5 @@
 /**
- * @freeside-storage/protocol — sealed schemas for freeside-storage.
+ * @0xhoneyjar/freeside-protocol — sealed schemas for freeside-storage.
  *
  * Per ADR-001, this package exports:
  *   - The `StorageAdapter` common interface (§3.1)
@@ -45,4 +45,16 @@ export {
   type WorldSlug,
 } from './url-contract.js';
 
-export { Attribute, MetadataDocument } from './metadata-document.js';
+export {
+  Attribute,
+  MetadataDocument,
+  MetadataImage,
+  MetadataImageStruct,
+  ImageCapability,
+} from './metadata-document.js';
+
+export {
+  parseImage,
+  decodeAndParseImage,
+  type ParsedImage,
+} from './parse-image.js';

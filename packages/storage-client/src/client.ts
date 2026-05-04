@@ -17,6 +17,7 @@ import {
   METADATA_HOST,
   MetadataDocument,
   URL_CONTRACT_V1,
+  parseImage,
 } from "@freeside-storage/protocol";
 
 import { MalformedURLError, NotFoundError } from "./errors.js";
@@ -276,9 +277,10 @@ export function mstMetadataURL(tokenId: number): string {
  * tokens — see issue loa-freeside#197 for the substrate-truth diagnosis).
  *
  * v1.1.0: refactored to compose `fetchSovereignMetadata` + `.image` extraction.
- * The MetadataDocument Schema enforces `image` as a non-empty string, so a
- * payload missing `image` surfaces as MalformedURLError at the schema-decode
- * boundary rather than producing a runtime undefined.
+ * v1.3.0: refactored to normalize `image` via `parseImage` (URL_CONTRACT v1.3.0
+ * extended `image` to a flat-string OR struct union — `parseImage` returns
+ * the canonical URL in both shapes). Callers see the same string-returning
+ * shape; backward-compat preserved per Risk 5.
  */
 export const mstImageURL = (
   tokenId: number,
@@ -287,5 +289,5 @@ export const mstImageURL = (
     world: "mibera",
     collection: "mst",
     tokenId,
-  }).pipe(Effect.map((doc) => doc.image));
+  }).pipe(Effect.map((doc) => parseImage(doc.image).canonical));
 

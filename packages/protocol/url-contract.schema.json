@@ -17,7 +17,7 @@
     "version": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$",
-      "description": "Semver. v1.0 = mature-freeside-operator-and-cutover (assets host). v1.1 = cross-collection-sovereignty (sovereign metadata host + cf-function-kv-manifest backing). v1.2 = mibera-family-sticker-substrate (Shadow + MST under /Mibera/). All v1 bumps additive; major bump requires 90d deprecation window."
+      "description": "Semver. v1.0 = mature-freeside-operator-and-cutover (assets host). v1.1 = cross-collection-sovereignty (sovereign metadata host + cf-function-kv-manifest backing). v1.2 = mibera-family-sticker-substrate (Shadow + MST under /Mibera/). v1.3 = asset-pipeline-substrate (MetadataImage union + animation_url sibling on MetadataDocument). All v1 bumps additive; major bump requires 90d deprecation window."
     },
     "host": {
       "type": "string",
@@ -69,7 +69,8 @@
         "mibera-sovereign-cutover",
         "mst-sovereign-cutover",
         "cross-collection-sovereign",
-        "mibera-family-sticker-substrate"
+        "mibera-family-sticker-substrate",
+        "asset-pipeline-substrate-v1"
       ]
     },
     "RouteBacking": {

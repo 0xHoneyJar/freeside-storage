@@ -6,13 +6,22 @@ import {
   type MiberaSubCollection,
 } from "@freeside-storage/protocol";
 
-describe("URL_CONTRACT_VERSION (v1.2.0 additive — mibera-family-sticker-substrate)", () => {
-  it("is at v1.2.0", () => {
-    expect(URL_CONTRACT_VERSION).toBe("1.2.0");
+describe("URL_CONTRACT_VERSION (v1.3.0 additive — asset-pipeline-substrate)", () => {
+  it("is at v1.3.0", () => {
+    expect(URL_CONTRACT_VERSION).toBe("1.3.0");
   });
 
   it("is reflected on URL_CONTRACT_V1.version", () => {
-    expect(URL_CONTRACT_V1.version).toBe("1.2.0");
+    expect(URL_CONTRACT_V1.version).toBe("1.3.0");
+  });
+
+  it("registers asset-pipeline-substrate-v1 migration phase", () => {
+    const phase = URL_CONTRACT_V1.migrationPhases.find(
+      (p) => p.id === "asset-pipeline-substrate-v1",
+    );
+    expect(phase).toBeDefined();
+    expect(phase?.cycleName).toBe("asset-pipeline-substrate-2026-05-03");
+    expect(phase?.shippedAt).toBeNull();
   });
 });
 

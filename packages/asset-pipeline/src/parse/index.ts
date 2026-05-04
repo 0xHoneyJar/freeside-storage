@@ -1,5 +1,18 @@
-// Re-exports for the parse layer.
-// parseImage helper lives in @freeside-storage/protocol per SDD §10.3
-// (Risk 5 mitigation — protocol package keeps the URL_CONTRACT-bound shape).
-// Activated by T0-3 (protocol bump to 1.3.0 + parseImage helper).
-export {};
+/**
+ * Parse layer re-exports — convenience surface for consumers that
+ * import everything from `@0xhoneyjar/asset-pipeline`.
+ *
+ * The canonical home for parseImage is `@freeside-storage/protocol`
+ * per SDD §10.3 (Risk 5 mitigation — protocol owns the URL_CONTRACT-bound
+ * shape). We re-export here so consumers don't have to add a second
+ * dependency for the helper.
+ */
+
+export {
+  parseImage,
+  decodeAndParseImage,
+  type ParsedImage,
+  MetadataImage,
+  MetadataImageStruct,
+  ImageCapability,
+} from "@freeside-storage/protocol";

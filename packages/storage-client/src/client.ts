@@ -18,7 +18,7 @@ import {
   MetadataDocument,
   URL_CONTRACT_V1,
   parseImage,
-} from "@freeside-storage/protocol";
+} from "@0xhoneyjar/freeside-protocol";
 
 import { MalformedURLError, NotFoundError } from "./errors.js";
 import { lookupMiberaURL } from "./codex/mibera-urls.js";

@@ -1,6 +1,6 @@
 # @freeside-storage/adapters-s3
 
-S3 implementation of [`@freeside-storage/protocol`'s](../../protocol/README.md)
+S3 implementation of [`@0xhoneyjar/freeside-protocol`'s](../../protocol/README.md)
 `StorageAdapter` interface, plus S3-specific extensions (`presignedURL`,
 `setACL`, `invalidateCDN`) as escape hatches.
 

@@ -2,7 +2,7 @@
   "name": "@freeside-storage/adapters-s3",
   "version": "0.0.1",
   "private": true,
-  "description": "S3 implementation of @freeside-storage/protocol's StorageAdapter, with S3-specific extensions (presignedURL, setACL, invalidateCDN).",
+  "description": "S3 implementation of @0xhoneyjar/freeside-protocol's StorageAdapter, with S3-specific extensions (presignedURL, setACL, invalidateCDN).",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -28,7 +28,7 @@
     "@aws-sdk/client-s3": "^3.620.0",
     "@aws-sdk/client-sts": "^3.620.0",
     "@aws-sdk/s3-request-presigner": "^3.620.0",
-    "@freeside-storage/protocol": "workspace:*"
+    "@0xhoneyjar/freeside-protocol": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.12.0",

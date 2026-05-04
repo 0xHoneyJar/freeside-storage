@@ -1,5 +1,5 @@
 /**
- * @freeside-storage/protocol — sealed schemas for freeside-storage.
+ * @0xhoneyjar/freeside-protocol — sealed schemas for freeside-storage.
  *
  * Per ADR-001, this package exports:
  *   - The `StorageAdapter` common interface (§3.1)

@@ -8,7 +8,7 @@
  * Public surface (per SDD §8.1 exports):
  *   - schema:  AssetReference + ConsumerConstraint + AssetVariant + AssetError
  *   - service: AssetService Tag + Live + Test layers
- *   - parse:   parseImage helper (re-export from @freeside-storage/protocol)
+ *   - parse:   parseImage helper (re-export from @0xhoneyjar/freeside-protocol)
  *
  * Doctrine: ~/vault/wiki/concepts/asset-pipeline-as-mutable-cdn-substrate.md
  *           (operator-validated 0.80 confidence)

@@ -51,7 +51,7 @@ freeside-storage/
 │   └── ADR-001-package-layout.md                (this file)
 └── packages/
     ├── protocol/
-    │   ├── package.json                         (renamed scope: @freeside-storage/protocol)
+    │   ├── package.json                         (npm scope: @0xhoneyjar/freeside-protocol)
     │   ├── tsconfig.json                        (NEW)
     │   ├── README.md
     │   └── src/

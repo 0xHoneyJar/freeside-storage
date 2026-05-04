@@ -40,7 +40,7 @@
     "test:watch": "vitest --config vitest.config.ts"
   },
   "dependencies": {
-    "@freeside-storage/protocol": "workspace:*"
+    "@0xhoneyjar/freeside-protocol": "workspace:*"
   },
   "peerDependencies": {
     "effect": "^3.10.0"

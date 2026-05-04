@@ -16,7 +16,7 @@ import {
   MetadataDocument,
   MetadataImage,
   MetadataImageStruct,
-} from "@freeside-storage/protocol";
+} from "@0xhoneyjar/freeside-protocol";
 
 describe("parseImage — URL_CONTRACT v1.3.0 normalizer", () => {
   it("flat string → struct with canonical only", () => {

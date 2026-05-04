@@ -4,7 +4,7 @@ import {
   URL_CONTRACT_V1,
   URL_CONTRACT_VERSION,
   type MiberaSubCollection,
-} from "@freeside-storage/protocol";
+} from "@0xhoneyjar/freeside-protocol";
 
 describe("URL_CONTRACT_VERSION (v1.3.0 additive — asset-pipeline-substrate)", () => {
   it("is at v1.3.0", () => {

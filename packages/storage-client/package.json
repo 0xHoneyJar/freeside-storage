@@ -26,7 +26,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@freeside-storage/protocol": "workspace:*",
+    "@0xhoneyjar/freeside-protocol": "workspace:*",
     "effect": "^3.10.0"
   },
   "devDependencies": {

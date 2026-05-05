@@ -29,10 +29,19 @@
  * (FR-8 v2 forward-compat). Companion to the @0xhoneyjar/asset-pipeline
  * NPM package — consumers that read `meta.image` as a flat string keep working
  * unchanged via the `parseImage` helper (Risk 5 mitigation, see ./parse-image.ts).
+ * v1.4 (cmp-boundary-architecture cycle R sprint 4, 2026-05-04) adds the
+ * optional `medium_capabilities?` field on `MetadataDocument` — a sparse
+ * Record<MediumId, opaque-shape> read by `wardrobe-resolver` (cycle-3 fill)
+ * for per-token medium presentation overrides. ADDITIVE-ONLY · existing
+ * tokens decode unchanged · architect lock A7. Companion to the new
+ * @0xhoneyjar/medium-registry package shipping the typed MediumCapability
+ * shape (consumed at the persona-engine boundary, not at this protocol
+ * layer — preserves the L0 ⇄ L2 separation per chat-medium-presentation-
+ * boundary §9 + chathead-in-cache-pattern §6).
  * All bumps additive-only — no consumer breakage. Breaking changes require
  * a major bump + deprecation window per Section 7.
  */
-export const URL_CONTRACT_VERSION = '1.3.0' as const;
+export const URL_CONTRACT_VERSION = '1.4.0' as const;
 
 /**
  * The hostname under which the URL contract resolves. v1 locks this to
@@ -134,7 +143,8 @@ export type MigrationPhaseId =
   | 'mst-sovereign-cutover'
   | 'cross-collection-sovereign'
   | 'mibera-family-sticker-substrate'
-  | 'asset-pipeline-substrate-v1';
+  | 'asset-pipeline-substrate-v1'
+  | 'cmp-boundary-architecture-v140';
 
 /**
  * Backing layer for a route. v1 worlds back routes via S3, IPFS gateway,
@@ -609,6 +619,26 @@ export const URL_CONTRACT_V1: URLContract = {
         '@0xhoneyjar/asset-pipeline NPM package shipping the AssetService ' +
         'substrate (Lambda /_optimize transform · sibling-name webp variants · ' +
         'consumer-constraint-driven materialization).',
+      affectedRoutes: [
+        'metadata.0xhoneyjar.xyz/mibera/{N}',
+        'metadata.0xhoneyjar.xyz/mibera/mst/{N}',
+      ],
+      shippedAt: null,
+    },
+    {
+      id: 'cmp-boundary-architecture-v140',
+      cycleName: 'cmp-boundary-architecture-2026-05-04',
+      scope:
+        'Add optional `medium_capabilities?` field on MetadataDocument — ' +
+        'sparse Record<MediumId, opaque-shape> read by `wardrobe-resolver` ' +
+        '(cycle-3 fill) for per-token medium presentation overrides. ' +
+        'URL_CONTRACT v1.4.0 additive only · existing tokens decode ' +
+        'unchanged (audited against canon Mibera 10000 + MST 3219 = 13219 ' +
+        'tokens at v1.4.0 release · 100% pass required to merge per ' +
+        'architect lock A7). Companion to @0xhoneyjar/medium-registry ' +
+        '(NEW package · Sprint 2) and @0xhoneyjar/cli-renderer (NEW · ' +
+        'Sprint 3). Resolver implementation lives in mibera-as-NPC ' +
+        'cycle-3 (gated on loa-finn#157 6/7 sprints).',
       affectedRoutes: [
         'metadata.0xhoneyjar.xyz/mibera/{N}',
         'metadata.0xhoneyjar.xyz/mibera/mst/{N}',

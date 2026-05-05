@@ -6,21 +6,30 @@ import {
   type MiberaSubCollection,
 } from "@0xhoneyjar/freeside-protocol";
 
-describe("URL_CONTRACT_VERSION (v1.3.0 additive — asset-pipeline-substrate)", () => {
-  it("is at v1.3.0", () => {
-    expect(URL_CONTRACT_VERSION).toBe("1.3.0");
+describe("URL_CONTRACT_VERSION (v1.4.0 additive — cmp-boundary-architecture)", () => {
+  it("is at v1.4.0", () => {
+    expect(URL_CONTRACT_VERSION).toBe("1.4.0");
   });
 
   it("is reflected on URL_CONTRACT_V1.version", () => {
-    expect(URL_CONTRACT_V1.version).toBe("1.3.0");
+    expect(URL_CONTRACT_V1.version).toBe("1.4.0");
   });
 
-  it("registers asset-pipeline-substrate-v1 migration phase", () => {
+  it("registers asset-pipeline-substrate-v1 migration phase (v1.3.0 preserved)", () => {
     const phase = URL_CONTRACT_V1.migrationPhases.find(
       (p) => p.id === "asset-pipeline-substrate-v1",
     );
     expect(phase).toBeDefined();
     expect(phase?.cycleName).toBe("asset-pipeline-substrate-2026-05-03");
+    expect(phase?.shippedAt).toBeNull();
+  });
+
+  it("registers cmp-boundary-architecture-v140 migration phase (v1.4.0)", () => {
+    const phase = URL_CONTRACT_V1.migrationPhases.find(
+      (p) => p.id === "cmp-boundary-architecture-v140",
+    );
+    expect(phase).toBeDefined();
+    expect(phase?.cycleName).toBe("cmp-boundary-architecture-2026-05-04");
     expect(phase?.shippedAt).toBeNull();
   });
 });

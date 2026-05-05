@@ -47,6 +47,7 @@ export {
 
 export {
   Attribute,
+  MediumCapabilitiesPerMedium,
   MetadataDocument,
   MetadataImage,
   MetadataImageStruct,

@@ -1,0 +1,24 @@
+{
+  "schema_version": "3",
+  "slug": "storage-api",
+  "publisher": "0xHoneyJar",
+  "is": {
+    "one_liner": "Sovereign asset surface — storage layout + static-asset CDN + NFT metadata serving + retrieval API",
+    "scope": [
+      "Define the StorageAdapter abstraction + URL contract over S3, IPFS, Arweave, and local stores",
+      "Serve static assets (NFT metadata, music, archetype images) via CDN",
+      "Own per-pattern storage layouts (NFT collection, per-world music, per-Door asset bundles)"
+    ]
+  },
+  "is_not": [
+    "Does NOT own per-collection content — it owns the storage abstraction, not the bytes' meaning",
+    "Will NOT be a cloud provider — it wraps S3/IPFS/Arweave behind one interface",
+    "Does NOT model a filesystem hierarchy — it is object + CDN storage"
+  ],
+  "cycle_state": {
+    "status": "candidate",
+    "since": "2026-05-23",
+    "next_review": "2026-08-21"
+  },
+  "_comment": "Stub today (establishes the shape). composes_with + acvp_invariants + capabilities omitted pending substantive work + port-schema sealing (ADR-007 App A.2 / ADR-008 §D-11). The mcp transport block is added at deployment."
+}

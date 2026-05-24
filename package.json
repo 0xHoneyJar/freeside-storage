@@ -1,5 +1,5 @@
 {
-  "name": "freeside-storage",
+  "name": "@0xhoneyjar/storage",
   "version": "0.0.1",
   "private": true,
   "description": "freeside-* attachment module for storage layout + static-asset CDN + NFT metadata serving + retrieval API. Closes loa-freeside#167. Lean instance-1 ships protocol + S3 adapter (per ADR-001).",

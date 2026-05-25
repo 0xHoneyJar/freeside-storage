@@ -1,0 +1,27 @@
+{
+  "completed_at": "2026-05-25T00:00:00Z",
+  "framework_version": "1.39.1",
+  "user_type": "thj",
+  "mcp_servers": [],
+  "git_user": "zerkereth@gmail.com",
+  "mount_mechanism": "Path B (manual scaffold + symlinks to score-api .claude template)",
+  "mount_provenance": "cluster-meta remediation Tier-2, ADR-009 D-4 (loa-freeside)",
+  "template_source": {
+    "detected": true,
+    "repo": "/Users/zksoju/Documents/GitHub/score-api",
+    "detection_method": "operator-provided",
+    "detected_at": "2026-05-25T00:00:00Z"
+  },
+  "enhancements": {
+    "ck": {
+      "installed": false,
+      "version": null,
+      "checked_at": "2026-05-25T00:00:00Z"
+    },
+    "br": {
+      "installed": true,
+      "version": "0.2.11",
+      "checked_at": "2026-05-25T00:00:00Z"
+    }
+  }
+}

@@ -6,3 +6,30 @@ build/
 *.tsbuildinfo
 .env
 .env.local
+
+# --- Loa state zone (added 2026-05-25 cluster-meta mount) ---
+# Beads DB is local cache; canonical state lives in issues.jsonl (tracked)
+.beads/beads.db
+.beads/beads.db-shm
+.beads/beads.db-wal
+.beads/last-touched
+.beads/*.lock
+.beads/.sync.lock
+
+# Run state is ephemeral
+.run/
+!.run/.gitkeep
+
+# Loa system zone overrides (settings.local is per-machine)
+.claude/settings.local.json
+.claude/config/
+.claude/context/gpt-review-active.md
+.claude/constructs/
+.claude.backup.*/
+
+# Grimoire ephemera (autopopulated by agents)
+grimoires/loa/a2a/trajectory/*.jsonl
+grimoires/loa/analytics/pending-feedback.json
+grimoires/loa/analytics/permission-requests.jsonl
+grimoires/loa/ledger.json.bak
+grimoires/loa/archive/

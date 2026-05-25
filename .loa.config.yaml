@@ -1,0 +1,46 @@
+# Loa configuration for freeside-storage
+# Mounted: 2026-05-25 (cluster-meta remediation Tier-2)
+# Mode: symlink-mount of .claude/ to score-api template
+
+run_bridge:
+  enabled: true
+  defaults:
+    depth: 3
+    per_sprint: false
+    flatline_threshold: 0.05
+    consecutive_flatline: 2
+  timeouts:
+    per_iteration_hours: 4
+    total_hours: 24
+  github_trail:
+    post_comments: true
+    update_pr_body: true
+  ground_truth:
+    enabled: true
+  vision_registry:
+    enabled: true
+    auto_capture: true
+  rtfm:
+    enabled: true
+    max_fix_iterations: 1
+  lore:
+    enabled: true
+    categories:
+      - freeside-storage
+      - asset-pipeline
+      - tokenuri
+
+run_mode:
+  enabled: true
+  defaults:
+    max_cycles: 20
+    timeout_hours: 8
+  sprint_plan:
+    branch_prefix: "feat/"
+    default_branch_name: "release"
+    consolidate_pr: true
+    commit_prefix: "feat"
+    include_commits_by_sprint: true
+  git:
+    auto_push: false
+    create_draft_pr: true

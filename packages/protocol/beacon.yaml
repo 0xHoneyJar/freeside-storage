@@ -1,0 +1,164 @@
+# packages/protocol/beacon.yaml — freeside-storage building beacon (BeaconV3)
+#
+# Per ADR-007 §D-4 + Appendix A in loa-freeside (the V3 boundary-declaration
+# discipline). Validated against `packages/beacon-schema/src/beacon-v3.ts`
+# (BeaconV3Schema) in loa-freeside. V3 structurally extends V2 — schema_version
+# stays "2" (the V2 literal constraint is preserved through Schema.extend).
+#
+# Authored 2026-05-26 (beacon-v3-author dispatch from loa-freeside cluster
+# coordinator). Shape mirrors the canonical inventory fixture:
+#   loa-freeside/packages/beacon-schema/tests/fixtures/freeside-inventory-v3.yaml
+#
+# This file is the source-of-truth authored shape. At deploy time the build
+# step (freeside-cli doctor) recomputes placeholder hashes:
+#   - sealed_schemas.<n>.hash           (full 64-hex sha256 of canonical JSON)
+#   - composes_with.<sibling>.tag       (TagName@semver+<sha256_prefix>)
+# storage is closer-to-raw in the cluster DAG — composes_with is intentionally
+# empty (no sibling-building reads at runtime; collections call US).
+
+schema_version: "3"
+slug: "storage-api"
+publisher: "0xHoneyJar"
+
+# ─── Identity + boundaries (per ADR-008 §D-11) ───────────────────────────
+# NOTE: V3 is a SEPARATE shape from V2 (not a structural superset). V3 is the
+# building-identity beacon (schema_version "3"); V2 (schema_version "2") is
+# the MCP-tenant self-declaration. V3 omits V2's `payment`/`docs` fields and
+# requires top-level `slug` + `publisher` + identity (is/is_not/cycle_state).
+# Optional transport block `mcp:` mirrors V2's McpBlock for runtime federation.
+
+is:
+  one_liner: "Sovereign asset + metadata substrate: byte-key storage, URL contract, NFT manifest serving"
+  scope:
+    - "Sealed StorageAdapter contract — put/get/list/sync/verifyParity over object stores"
+    - "URL_CONTRACT_V1 — canonical asset paths under assets.0xhoneyjar.xyz/{world}/{category}/{...}"
+    - "MetadataDocument schema — sovereign manifest payload (ERC-721/1155, OpenSea-shape)"
+    - "MetadataImage union — flat-string OR struct{canonical,variants,transform,capabilities}"
+    - "Per-token sticker substrate — StickerProfile manifests for Mibera-family sub-collections"
+    - "Asset-pipeline AssetService — variant resolution + URL DSL + bounded prefetch"
+    - "Per-tokenId codex resolution — Mibera image URLs + grail lookups (substrate-truth)"
+
+is_not:
+  - "Does NOT index on-chain events (composes nothing; freeside-sonar owns ERC721/1155 indexing)"
+  - "Does NOT resolve holder ownership (composes nothing; freeside-inventory owns holder→tokens)"
+  - "Will NOT mutate token state or initiate on-chain transactions (read-side metadata serving)"
+  - "Will NOT proxy live chain RPC calls (URL contract is substrate-truth, not chain-truth)"
+  - "Does NOT own per-collection JSON content (each collection's tokenURI payload is its own repo)"
+  - "Refuses to call third-party metadata gateways (Irys, Alchemy, NFTPort) in the live read path"
+  - "Does NOT provision S3 buckets / CloudFront distributions (loa-freeside terraform owns IaC)"
+
+# ─── Composition (sibling-building reads at runtime) ─────────────────────
+#
+# storage is closer-to-raw in the cluster DAG — it is a SOURCE of metadata
+# bytes that downstream cells (freeside-inventory, freeside-mint, honey-road,
+# dimensions, ruggy, identity-api) compose. storage itself reads from NOTHING
+# in the cluster at runtime; its only upstream is the underlying object store
+# (S3/CloudFront/IPFS/Irys via packages/adapters/*).
+#
+# The codex/grails consumer (packages/storage-client/src/codex/) reads
+# construct-mibera-codex JSON files at compile/test time, NOT at runtime —
+# the substrate-truth maps are bundled into the published storage-client
+# package. That is a build-time dependency, not a runtime composition.
+
+composes_with: {}
+
+# ─── ACVP invariants (verifiability discipline per ACVP doctrine) ────────
+#
+# GROUNDED — each invariant cites a test that binds it. The proof_artifact
+# paths point at vitest files in this repo; they pass at the build_step
+# tagged by freeside-cli doctor.
+
+acvp_invariants:
+  - id: schema_enforcement
+    scope: "Every served manifest validates against MetadataDocument before crossing the boundary"
+    proof_artifact: "packages/protocol/tests/metadata-document.test.ts"
+  - id: idempotency
+    scope: "StorageAdapter.put with identical bytes at identical key is a no-op (etag preserved; HEAD-then-PUT skip)"
+    proof_artifact: "packages/asset-pipeline/tests/unit/cache.test.ts"
+  - id: schema_enforcement
+    scope: "MetadataImage union decodes BOTH flat-string and struct shapes round-trip identically via parseImage"
+    proof_artifact: "packages/protocol/tests/parse-image.test.ts"
+
+# ─── Sealed schemas (hash-verified protocol surface) ─────────────────────
+#
+# Only one externalized JSON Schema today: url-contract.schema.json — the
+# Tier 1 schema-bridge for assets.0xhoneyjar.xyz (per ADR-001-H + SDD §0.3
+# contracts-as-bridges instance-N). MetadataDocument, MetadataImage, and
+# StorageAdapter are Effect.Schema / TS-interface contracts; they are
+# consumed via @0xhoneyjar/freeside-protocol package imports, not by
+# ajv-validating an externalized JSON Schema. If those gain externalized
+# JSON Schema artifacts in a later cycle, add them here.
+
+sealed_schemas:
+  - path: "packages/protocol/url-contract.schema.json"
+    hash: "0000000000000000000000000000000000000000000000000000000000000000"  # PLACEHOLDER — doctor recomputes
+    consumers:
+      - "freeside-storage-client"
+      - "construct-freeside"            # coordinating-cutover + mirroring-storage skills
+      - "construct-mibera-codex"        # mibestats codegen consumer
+      - "loa-freeside"                  # docs/asset-url-contract.md surface
+
+# ─── Cycle state (honest maturity signal) ────────────────────────────────
+#
+# active — instance-1 lean (protocol + S3 adapter + storage-client + asset-
+# pipeline + stickers) shipped in mature-freeside-operator-and-cutover
+# Sprint 1 on 2026-04-29; subsequent cycles (cross-collection-sovereignty,
+# mibera-family-sticker-substrate, asset-pipeline-substrate, cmp-boundary-
+# architecture) have layered additive content. URL_CONTRACT is at v1.4.0.
+# Runtime substrate (assets.0xhoneyjar.xyz + metadata.0xhoneyjar.xyz) is
+# live and serving sovereign Mibera + MST manifest reads from production.
+
+cycle_state:
+  status: active
+  since: "2026-04-29"           # ADR-001 acceptance + first instance-1 shape merged
+  next_review: "2026-10-26"     # +180d cap per doctor enforcement
+
+# ─── Transport (V2 base — required block, even for library packages) ─────
+#
+# storage-api is library-shape today — it ships TS packages consumed via npm
+# (@0xhoneyjar/freeside-protocol, @0xhoneyjar/storage-client, @0xhoneyjar/
+# asset-pipeline, @freeside-storage/adapters-s3, @freeside-storage/stickers).
+# There is NO HTTP / GraphQL / MCP server inside this repo (the runtime asset
+# host is operated by loa-freeside terraform: CloudFront + S3 + CF Function
+# with KV pointer per ADR-001-F). BeaconV2 requires mcp; we declare a stdio-
+# only data shape to satisfy the validator with a forward-looking tools
+# surface (an MCP wrapper IS the natural follow-on cycle; tool names below
+# mirror the load-bearing public-API symbols from packages/storage-client +
+# packages/protocol so the surface earns its shape from real consumers).
+#
+# When the MCP wrapper ships, flip paths to include remote-http + populate
+# remote.transport + remote.endpoint + auth.kind (api-key with railway-secret
+# credentials_ref), matching the identity-api beacon pattern.
+
+mcp:
+  shape: data                    # lookup-shaped — URL builders + manifest reads
+  paths:
+    - stdio                      # no remote-http server in this repo yet
+  auth:
+    kind: none                   # library-side; no upstream credential resolution
+  capabilities:
+    - tools
+  tools:
+    # Public API surface from @0xhoneyjar/storage-client + @0xhoneyjar/freeside-protocol
+    - lookupSovereignManifest    # storage-client/src/client.ts — pure URL build
+    - fetchSovereignMetadata     # storage-client/src/client.ts — typed fetch + Schema decode
+    - miberaImageURL             # storage-client/src/client.ts — content-hash → asset URL
+    - miberaImageURLByToken      # storage-client/src/client.ts — tokenId → URL (codex authority)
+    - miberaMetadataURL          # storage-client/src/client.ts — back-compat manifest URL
+    - mstMetadataURL             # storage-client/src/client.ts — MST manifest URL
+    - mstImageURL                # storage-client/src/client.ts — async image (via manifest.image)
+    - grailImageURL              # storage-client/src/codex/grails.ts — grail lookup
+    - lookupHoneyroadAsset       # storage-client/src/client.ts — d163 → assets-host transform
+    - isCanonicalPath            # freeside-protocol/url-contract.ts — URL contract validation
+    - parseImage                 # freeside-protocol/parse-image.ts — MetadataImage union normalizer
+  source_of_truth:
+    type: static_file
+    files:
+      - "packages/protocol/url-contract.schema.json"      # URL contract source-of-truth
+      - "packages/protocol/src/url-contract.ts"           # URL_CONTRACT_V1 const + types
+      - "packages/protocol/src/metadata-document.ts"      # MetadataDocument Effect.Schema
+      - "packages/protocol/src/StorageAdapter.ts"         # StorageAdapter interface
+  pricing:
+    model: free
+    description: First-party tenant — free during initial rollout (library-side)
+  publisher: "0xHoneyJar"

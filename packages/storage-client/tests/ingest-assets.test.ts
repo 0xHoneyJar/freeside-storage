@@ -266,11 +266,11 @@ describe("ingestAssets — generic asset copier (Candies image slice)", () => {
     expect(second.copied).toBe(0);
     expect(second.skipped).toBe(1);
     expect(second.results[0]?.status).toBe("skipped");
-    // No second PUT — the byte-compare short-circuits before the adapter writes.
+    // No second PUT — the existence pre-check short-circuits before any fetch.
     expect(adapter.putCalls).toBe(1);
   });
 
-  it("re-copies when the source bytes change for the same target key", async () => {
+  it("skips an existing target key WITHOUT a source GET, even if source bytes differ (content-stable migration: a changed asset gets a new key/version)", async () => {
     const adapter = new InMemoryAdapter();
     const url = candiesSourceUrl("bubblegum-buds.png");
 
@@ -285,20 +285,26 @@ describe("ingestAssets — generic asset copier (Candies image slice)", () => {
     });
     expect(adapter.putCalls).toBe(1);
 
-    const v2 = fakeFetcher({
-      [url]: { bytes: Buffer.from("v2-bytes-different"), contentType: "image/png" },
-    });
-    const changed = await ingestAssets({
-      fetchBytes: v2.fetchBytes,
+    // Second run: the key now exists. Existence-only idempotency skips it
+    // WITHOUT fetching the source — the whole point of the re-run-cheapness fix.
+    let v2Fetched = false;
+    const v2Fetch = async (_u: string) => {
+      v2Fetched = true;
+      return { bytes: Buffer.from("v2-bytes-different"), contentType: "image/png" };
+    };
+    const second = await ingestAssets({
+      fetchBytes: v2Fetch,
       adapter,
       world: "mibera",
       items: [candiesItem("1", "bubblegum-buds.png")],
     });
-    expect(changed.copied).toBe(1);
-    expect(adapter.putCalls).toBe(2);
+    expect(second.skipped).toBe(1);
+    expect(second.copied).toBe(0);
+    expect(adapter.putCalls).toBe(1); // no second PUT
+    expect(v2Fetched).toBe(false); // and crucially, NO source CDN GET on the re-run
     expect(
       adapter.store.get("Mibera/Drugs/bubblegum-buds.png")?.bytes.toString("utf8"),
-    ).toBe("v2-bytes-different");
+    ).toBe("v1-bytes"); // unchanged
   });
 
   it("rejects a content-type mismatch when the item declares an expected type", async () => {

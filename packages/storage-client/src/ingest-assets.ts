@@ -32,10 +32,13 @@
  * allowlist (default `["d163aeqznbc6js.cloudfront.net"]`) rejects it and
  * anything else not explicitly permitted.
  *
- * Idempotency: each fetched asset is byte-compared against any object already at
- * the target key. Byte-identical content reports `skipped` and issues NO put —
- * the same idempotency pattern as `ingestCollectionMetadata`, so re-runs are
- * free and a partially-completed migration resumes cleanly.
+ * Idempotency: BEFORE any source fetch, the target key's existence is checked;
+ * an existing object reports `skipped` and issues NO put and NO source GET.
+ * Asset filenames are content-stable (this is a migration, not a mutable
+ * upload), so existence implies identity. A re-run / partial-migration resume
+ * therefore costs N cheap adapter existence-reads, NOT N CDN GETs — genuinely
+ * free of source bandwidth (unlike `ingestCollectionMetadata`, which byte-
+ * compares because metadata is mutable).
  */
 
 import type { StorageAdapter, StorageKey } from "@0xhoneyjar/freeside-protocol";
@@ -235,14 +238,17 @@ function normalizeContentType(ct: string | undefined): string {
  * across adapters (multipart S3 etags are not plain MD5). Mirrors
  * `ingest.ts::isAlreadyPublished`.
  */
-async function isAlreadyMirrored(
+async function alreadyMirrored(
   adapter: StorageAdapter,
   key: StorageKey,
-  bytes: Buffer,
 ): Promise<boolean> {
+  // Existence-only check (no byte-compare). Asset filenames are content-stable
+  // (content-hash or canonical name), so an existing object IS the mirrored
+  // asset. Checking existence BEFORE fetching lets a re-run skip without a
+  // source CDN GET (BB#16-HIGH). `adapter.get` throws on a missing key.
   try {
-    const existing = await adapter.get(key);
-    return existing.bytes.equals(bytes);
+    await adapter.get(key);
+    return true;
   } catch {
     return false;
   }
@@ -340,6 +346,19 @@ export async function ingestAssets(args: {
       continue;
     }
 
+    // 2.5. Re-run cheapness (BB#16-HIGH): if the target is already mirrored,
+    //      skip WITHOUT re-fetching the source CDN. A partial-migration resume
+    //      costs N cheap adapter existence-reads, not N CDN GETs.
+    if (await alreadyMirrored(adapter, storageKey)) {
+      skipped += 1;
+      results.push({
+        tokenId: item.tokenId,
+        targetKey: item.targetKey,
+        status: "skipped",
+      });
+      continue;
+    }
+
     // 3. Fetch via the injected port (hermetic; never global fetch).
     let fetched: FetchedAsset;
     try {
@@ -378,18 +397,8 @@ export async function ingestAssets(args: {
       }
     }
 
-    // 5 + 6. Idempotent copy: skip byte-identical, else PUT.
+    // 6. PUT — the existence pre-check (2.5) already confirmed this key absent.
     try {
-      if (await isAlreadyMirrored(adapter, storageKey, fetched.bytes)) {
-        skipped += 1;
-        results.push({
-          tokenId: item.tokenId,
-          targetKey: item.targetKey,
-          status: "skipped",
-        });
-        continue;
-      }
-
       await adapter.put({
         key: storageKey,
         contentType: sourceCt,

@@ -45,6 +45,27 @@ export {
 } from "@0xhoneyjar/freeside-protocol";
 
 export {
+  ingestCollectionMetadata,
+  metadataStorageKey,
+  metadataS3Key,
+  type IngestItem,
+  type IngestRequest,
+  type IngestResult,
+  type IngestItemResult,
+} from "./ingest.js";
+
+export {
+  ingestAssets,
+  DEFAULT_ALLOWED_HOSTS,
+  type FetchedAsset,
+  type FetchBytes,
+  type AssetIngestItem,
+  type AssetIngestRequest,
+  type AssetIngestItemResult,
+  type AssetIngestResult,
+} from "./ingest-assets.js";
+
+export {
   lookupGrail,
   resetGrailCache,
   type GrailEntry,

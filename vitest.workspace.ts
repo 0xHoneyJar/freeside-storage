@@ -7,6 +7,8 @@ export default defineWorkspace([
       environment: "node",
       include: [
         "packages/*/tests/**/*.test.ts",
+        // two-segment package paths (e.g. adapters/s3) — one level deeper than the rest (Icebreaker #20)
+        "packages/*/*/tests/**/*.test.ts",
         "scripts/**/*.test.ts",
       ],
     },

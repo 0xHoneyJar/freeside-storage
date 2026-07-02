@@ -46,6 +46,17 @@ describe("parseArgs", () => {
     expect(args.version).toBe("v1-2026-07-02");
     expect(args.limit).toBe(5);
   });
+
+  it("parses pythenians checkpoint path", () => {
+    const args = parseArgs([
+      "pythenians-me",
+      "--mints",
+      "./mints.txt",
+      "--checkpoint",
+      "./out/checkpoint.jsonl",
+    ]);
+    expect(args.checkpointPath).toBe("./out/checkpoint.jsonl");
+  });
 });
 
 describe("loadMintList", () => {

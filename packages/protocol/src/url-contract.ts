@@ -38,10 +38,13 @@
  * shape (consumed at the persona-engine boundary, not at this protocol
  * layer — preserves the L0 ⇄ L2 separation per chat-medium-presentation-
  * boundary §9 + chathead-in-cache-pattern §6).
+ * v1.5 (member-pfp STOR-1, 2026-07-01) adds external-world sovereign metadata
+ * routes for pythenians/pythians (SVM mint key) and purupuru/genesis (EVM
+ * tokenId key) on metadata.0xhoneyjar.xyz.
  * All bumps additive-only — no consumer breakage. Breaking changes require
  * a major bump + deprecation window per Section 7.
  */
-export const URL_CONTRACT_VERSION = '1.4.0' as const;
+export const URL_CONTRACT_VERSION = '1.5.0' as const;
 
 /**
  * The hostname under which the URL contract resolves. v1 locks this to
@@ -144,7 +147,8 @@ export type MigrationPhaseId =
   | 'cross-collection-sovereign'
   | 'mibera-family-sticker-substrate'
   | 'asset-pipeline-substrate-v1'
-  | 'cmp-boundary-architecture-v140';
+  | 'cmp-boundary-architecture-v140'
+  | 'external-world-sovereign';
 
 /**
  * Backing layer for a route. v1 worlds back routes via S3, IPFS gateway,
@@ -642,6 +646,19 @@ export const URL_CONTRACT_V1: URLContract = {
       affectedRoutes: [
         'metadata.0xhoneyjar.xyz/mibera/{N}',
         'metadata.0xhoneyjar.xyz/mibera/mst/{N}',
+      ],
+      shippedAt: null,
+    },
+    {
+      id: 'external-world-sovereign',
+      cycleName: 'member-pfp-2026-07',
+      scope:
+        'Publish pythenians/pythians (SVM mint-keyed) and purupuru/genesis ' +
+        '(EVM tokenId-keyed) metadata manifests to metadata.0xhoneyjar.xyz; ' +
+        'KV pointer flip is a separate operator act (flipping-kv-pointer).',
+      affectedRoutes: [
+        'metadata.0xhoneyjar.xyz/pythenians/pythians/{mint}',
+        'metadata.0xhoneyjar.xyz/purupuru/genesis/{tokenId}',
       ],
       shippedAt: null,
     },

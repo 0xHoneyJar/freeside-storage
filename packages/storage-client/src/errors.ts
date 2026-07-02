@@ -10,7 +10,7 @@ import { Data } from "effect";
 
 export class NotFoundError extends Data.TaggedError("NotFoundError")<{
   readonly collection: string;
-  readonly tokenId: number;
+  readonly tokenId: number | string;
 }> {}
 
 export class MalformedURLError extends Data.TaggedError("MalformedURLError")<{

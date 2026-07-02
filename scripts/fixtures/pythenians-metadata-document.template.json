@@ -1,0 +1,8 @@
+{
+  "name": "Pythenians #3180",
+  "description": "Pythenians genesis NFT",
+  "image": "https://ipfs.pythenians.xyz/nft/example3180.png",
+  "attributes": [
+    { "trait_type": "Rank", "value": "3180" }
+  ]
+}

@@ -44,7 +44,7 @@ const METADATA_BASE_URL = `https://${METADATA_HOST}`;
  * Note: distinct from the assets-host `WorldSlug` (`Mibera`/`Purupuru`/`sprawl`,
  * capitalized) since the sovereignty path convention uses lowercase.
  */
-export type SovereignWorldSlug = "mibera";
+export type SovereignWorldSlug = "mibera" | "pythenians" | "purupuru";
 
 /**
  * Sovereign-routing collection slugs within a world. Omit from a request to
@@ -57,13 +57,19 @@ export type SovereignWorldSlug = "mibera";
  *   - `gif` (ERC-721; cycle Sprint 7)
  *   - `candies` (ERC-1155; cycle Sprint 8)
  *   - `fractures` (multi-contract array; future cycle)
+ *
+ * v1.5.0 external worlds (member-pfp STOR-1):
+ *   - `pythians` under `pythenians` (SVM mint path segment)
+ *   - `genesis` under `purupuru` (EVM decimal tokenId path segment)
  */
 export type SovereignCollectionSlug =
   | "mst"
   | "tarot"
   | "gif"
   | "candies"
-  | "fractures";
+  | "fractures"
+  | "pythians"
+  | "genesis";
 
 /**
  * Request shape for sovereign manifest URL resolution. ERC-721 callers pass
@@ -76,8 +82,12 @@ export interface SovereignManifestRequest {
   world: SovereignWorldSlug;
   /** Optional collection within the world. Omit for canon namesake. */
   collection?: SovereignCollectionSlug;
-  /** ERC-721 tokenId or ERC-1155 id */
-  tokenId: number;
+  /** ERC-721 tokenId, ERC-1155 id, or external-world string key (SVM mint). */
+  tokenId: number | string;
+}
+
+function formatTokenIdSegment(tokenId: number | string): string {
+  return typeof tokenId === "number" ? String(tokenId) : tokenId;
 }
 
 /**
@@ -98,10 +108,11 @@ export interface SovereignManifestRequest {
 export function lookupSovereignManifest(
   req: SovereignManifestRequest,
 ): string {
+  const tokenSegment = encodeURIComponent(formatTokenIdSegment(req.tokenId));
   if (req.collection) {
-    return `${METADATA_BASE_URL}/${req.world}/${req.collection}/${req.tokenId}`;
+    return `${METADATA_BASE_URL}/${req.world}/${req.collection}/${tokenSegment}`;
   }
-  return `${METADATA_BASE_URL}/${req.world}/${req.tokenId}`;
+  return `${METADATA_BASE_URL}/${req.world}/${tokenSegment}`;
 }
 
 /**

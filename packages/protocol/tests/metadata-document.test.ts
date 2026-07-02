@@ -153,26 +153,27 @@ describe("MetadataDocument v1.4.0 additivity (cycle R sprint 4)", () => {
   });
 });
 
-describe("URL_CONTRACT v1.4.0 bump (cycle R sprint 4)", () => {
-  it("URL_CONTRACT_VERSION is '1.4.0'", () => {
-    expect(URL_CONTRACT_VERSION).toBe("1.4.0");
+describe("URL_CONTRACT v1.5.0 bump (member-pfp STOR-1)", () => {
+  it("URL_CONTRACT_VERSION is '1.5.0'", () => {
+    expect(URL_CONTRACT_VERSION).toBe("1.5.0");
   });
 
   it("URL_CONTRACT_V1.version matches", () => {
-    expect(URL_CONTRACT_V1.version).toBe("1.4.0");
+    expect(URL_CONTRACT_V1.version).toBe("1.5.0");
   });
 
-  it("'cmp-boundary-architecture-v140' migration phase exists", () => {
+  it("'external-world-sovereign' migration phase exists", () => {
     const phase = URL_CONTRACT_V1.migrationPhases.find(
-      (p) => p.id === "cmp-boundary-architecture-v140",
+      (p) => p.id === "external-world-sovereign",
     );
     expect(phase).toBeDefined();
-    expect(phase?.shippedAt).toBeNull(); // not yet flipped on chain
-    expect(phase?.cycleName).toContain("cmp-boundary-architecture-2026-05-04");
+    expect(phase?.shippedAt).toBeNull();
+    expect(phase?.cycleName).toBe("member-pfp-2026-07");
   });
 
-  it("v1.3.0 migration phases preserved (no regression)", () => {
+  it("v1.4.0 migration phases preserved (no regression)", () => {
     const ids = URL_CONTRACT_V1.migrationPhases.map((p) => p.id);
+    expect(ids).toContain("cmp-boundary-architecture-v140");
     expect(ids).toContain("asset-pipeline-substrate-v1");
     expect(ids).toContain("mibera-family-sticker-substrate");
     expect(ids).toContain("cross-collection-sovereign");

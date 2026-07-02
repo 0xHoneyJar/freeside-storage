@@ -93,6 +93,26 @@ describe("lookupSovereignManifest", () => {
       ).toBe(`https://metadata.0xhoneyjar.xyz/${expected}`);
     }
   });
+
+  it("returns external-world URLs with string token keys", () => {
+    const mint = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU";
+    expect(
+      lookupSovereignManifest({
+        world: "pythenians",
+        collection: "pythians",
+        tokenId: mint,
+      }),
+    ).toBe(
+      `https://metadata.0xhoneyjar.xyz/pythenians/pythians/${encodeURIComponent(mint)}`,
+    );
+    expect(
+      lookupSovereignManifest({
+        world: "purupuru",
+        collection: "genesis",
+        tokenId: "29",
+      }),
+    ).toBe("https://metadata.0xhoneyjar.xyz/purupuru/genesis/29");
+  });
 });
 
 describe("lookupHoneyroadAsset", () => {

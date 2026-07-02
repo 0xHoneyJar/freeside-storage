@@ -84,7 +84,15 @@ export function parseArgs(argv: string[]): SnapshotArgs {
     dryRun: argv.includes("--dry-run"),
     mintsFile: getFlag("--mints"),
     checkpointPath: getFlag("--checkpoint"),
-    limit: getFlag("--limit") ? Number(getFlag("--limit")) : undefined,
+    limit: (() => {
+      const raw = getFlag("--limit");
+      if (raw == null) return undefined;
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n < 1) {
+        throw new Error("--limit must be a positive integer");
+      }
+      return Math.floor(n);
+    })(),
   };
 }
 
@@ -186,11 +194,19 @@ export async function runSnapshot(args: SnapshotArgs): Promise<void> {
     });
     items = extracted.items;
     console.log(
-      `[snapshot-external-collection] pythenians extracted=${extracted.completed} skipped=${extracted.skipped} failed=${extracted.failed.length}`,
+      `[snapshot-external-collection] pythenians extracted=${extracted.completed} resumed=${extracted.skipped} failed=${extracted.failed.length}`,
     );
     if (extracted.failed.length > 0) {
       console.error(
         `[snapshot-external-collection] first failures: ${extracted.failed.slice(0, 5).join(", ")}`,
+      );
+      throw new Error(
+        `pythenians extraction failed for ${extracted.failed.length} mint(s); refusing partial ingest`,
+      );
+    }
+    if (extracted.items.length !== scopedMints.length) {
+      throw new Error(
+        `incomplete pythenians extraction: ${extracted.items.length}/${scopedMints.length} documents`,
       );
     }
   }

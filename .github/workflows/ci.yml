@@ -1,0 +1,46 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: typecheck + test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        # version omitted on purpose — read from package.json `packageManager`
+        # (pnpm@9.0.0) so the pin lives in exactly one place.
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Build MUST precede typecheck and test. Packages resolve each other via
+      # `dist/` ("types": "./dist/index.d.ts"), not via src. On a clean checkout
+      # there is no dist/, so both `tsc --noEmit` and vitest fail to resolve
+      # @0xhoneyjar/freeside-protocol until it has been built.
+      - name: Build
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # Hermetic: the only network tests (fetchSovereignMetadata) are gated
+      # behind FREESIDE_NETWORK_TESTS=1, which is deliberately not set here.
+      - name: Test
+        run: pnpm test

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://raw.githubusercontent.com/0xHoneyJar/loa-freeside/177a57a4fdb18c071b4f82f7560ca705b5807a1c/spec/product/system-component.schema.json",
+  "schema_version": "1.0",
+  "component_id": "storage-api",
+  "repository": "github:0xHoneyJar/storage-api",
+  "layer": "building",
+  "operator": {
+    "role": "Freeside systems component engineer",
+    "job": "Resolve and serve owned asset and metadata references through a sovereign storage contract rather than product-local static blobs."
+  },
+  "object": {
+    "kind": "system-component",
+    "description": "The storage, CDN, retrieval, and metadata-serving building for S3, IPFS, Arweave, and local adapters."
+  },
+  "question": "Where is this owned asset or metadata document stored, and can a consumer retrieve it through a stable URL contract?",
+  "responsibility": "Own storage adapter, URL, metadata document, asset-pipeline, and retrieval boundaries.",
+  "consumers": [
+    {
+      "name": "inventory-api",
+      "need": "Owned metadata and asset references behind inventory results."
+    },
+    {
+      "name": "world and product builders",
+      "need": "Sovereign asset delivery without embedding large static payloads in application images."
+    }
+  ],
+  "trust": {
+    "contract_status": "partial",
+    "contract_refs": [
+      "file:packages/protocol/url-contract.schema.json",
+      "file:packages/protocol/src/StorageAdapter.ts"
+    ],
+    "evidence_refs": [
+      "file:README.md"
+    ],
+    "note": "Protocol and adapter packages exist, but the root README still describes the module as a stub and substantive sovereign cutover is incomplete."
+  },
+  "actions": [
+    "resolve",
+    "retrieve",
+    "inspect-metadata",
+    "verify-url"
+  ],
+  "boundaries": {
+    "owns": [
+      "Storage adapters, URL contracts, metadata documents, and retrieval semantics.",
+      "Asset delivery and CDN-oriented storage layouts."
+    ],
+    "does_not_own": [
+      "Onchain ownership truth or inventory composition.",
+      "Mint policy, product presentation, or campaign selection."
+    ],
+    "missing_capability_handoff": "Add the storage or retrieval capability at this boundary; do not reintroduce product-local asset hosting as an implicit fallback."
+  },
+  "flow_moments": [],
+  "unmapped_reason": "Audit currently receives resolved holdings metadata through inventory; it has no direct storage evidence join until provenance is wired end to end."
+}

@@ -1,0 +1,271 @@
+# ACCEPT-STORAGE — Owner acceptance
+
+| Field | Value |
+|---|---|
+| Task | `ACCEPT-STORAGE` (collection-report-coordinator-f09.55) |
+| Repository | `0xHoneyJar/storage-api` (canonical checkout: freeside-storage) |
+| Branch | `coord/collection-report-coordinator-f09.55` |
+| Audited baseline | `origin/main` @ `99bd9bc` (`ci(storage-api): stand up CI — typecheck + test (#25)`) |
+| Masters | coordinator `prd.md` / `sdd.md` / `sprint.md` (2026-07-15 candidates) |
+| Date | 2026-07-16 |
+| Author role | freeside-storage maintainer (boundary owner) |
+| **Verdict** | **conditional** |
+
+This document is owner acceptance under sprint §13. It does **not** authorize
+CR implementation, issue creation, push, PR, or merge.
+
+---
+
+## 1. Verdict
+
+**conditional** — Storage accepts its assigned collection-report boundary and
+the SDD contracts it must eventually satisfy, and acknowledges that
+`origin/main` today is a **public sovereign-metadata / asset substrate**, not
+the restricted Key Index + restore-quarantine system required for Gate Leak
+artifacts.
+
+| Lane | Status | Meaning |
+|---|---|---|
+| Public metadata / URL contract / versioned ingest (existing charter) | acknowledged | May continue under normal Loa gates; not Gate Leak restricted release |
+| CR-010 participant (`artifact_manifest.v1` receipts) | conditional | Accept participation only after shared protocol ratifies CR-010 |
+| CR-014 Deletion-aware Key Index | **blocked for issue-ready** | No Key Index, tombstone log, KMS custody, or restore quarantine on main |
+| CR-405 Optional metadata snapshot capability | deferred / conditional | STOR-1-class snapshots exist as design+scripts; rights/proxy/mirror/excluded policy and pointer-flip owner are not closed for report capability |
+
+Unestimated Key Index / HSM / restore chaos capacity remains **not issue-ready**
+per sprint §6 (“unestimated is blocked”).
+
+---
+
+## 2. Interfaces (produce / consume)
+
+### 2.1 Present on `origin/main` (acknowledged)
+
+| Interface | Location | Version / notes |
+|---|---|---|
+| `MetadataDocument` (+ `MetadataImage` union, `medium_capabilities?`) | `packages/protocol/src/metadata-document.ts` | v1.3–v1.4 additive surface |
+| `URL_CONTRACT` / sovereign hosts | `packages/protocol/src/url-contract.ts` | `metadata.0xhoneyjar.xyz`, `assets.0xhoneyjar.xyz` |
+| `StorageAdapter` port | `packages/protocol/src/StorageAdapter.ts` | put/get/list/sync/verifyParity |
+| `ingestCollectionMetadata` | `packages/storage-client/src/ingest.ts` | Versioned S3 layout `{world}/{collection}/metadata/v/{version}/{tokenId}.json`; KV pointer flip is **out of module** |
+| `ingestAssets` / CDN mirror | `packages/storage-client/src/ingest-assets.ts` | Byte-identical skip; not rights policy |
+| Asset-pipeline `AssetService` | `packages/asset-pipeline` | Consumer-label `:v<N>` cache rollback (ADR-13) — **not** Key Index rollback |
+| BeaconV3 identity | `packages/protocol/beacon.yaml` | Declares public metadata substrate; explicitly not ownership/indexing |
+| STOR-1 external snapshot design | `grimoires/loa/specs/external-collection-metadata-onboarding.md` + `scripts/snapshot-external-collection.ts` | One-time onboard snapshots; kitchen `metadata_snapshot` hook is future |
+
+### 2.2 Required by collection-report masters — **absent on main**
+
+| Interface | Owner expectation (SDD / CR-014 / CR-010) | Main evidence |
+|---|---|---|
+| Deletion-aware Key Index | AES-256-GCM-SIV bundles; create-if-absent on `(artifact_attempt_id, row_id, canonical_plaintext_digest)`; AAD binds order/artifact/attempt/row/schema/digest | **None** (no matches for Key Index, GCM-SIV, erasure handle, tombstone watermark) |
+| Key Index replication + tombstone-aware backups | Online deletion-aware replicas; log-based availability backups; never restore DEKs from artifact backups | **None** |
+| Restore quarantine | Restore → replay tombstones through snapshot watermark → verify Key Index + manifest deletions → only then enable proxy/workers | **None** |
+| `artifact_manifest.v1` receipts / provisional objects | Storage receipts for hierarchical manifests; provisional namespace; orphan sweeper | **None** as restricted-artifact API |
+| Restricted retention workers | ≤30-day restricted evidence/rows; tombstone ≤60s; erasure ≤15m (V1 objectives) | **None** |
+| Rights-aware snapshot policy (CR-405) | Explicit `proxy` \| `mirror` \| `excluded`; named source + pointer-flip owner; no third-party art rehosted by inference | **Not closed** — ingest can write any validated `MetadataDocument`; no policy enum gate |
+
+Storage will consume ratified shared-protocol schemas from `loa-freeside` (CR-009 /
+CR-010) and will not fork Ordering schemas by hand.
+
+---
+
+## 3. Authority boundaries
+
+### 3.1 Storage owns
+
+- Byte-addressable object layout, sovereign metadata documents, URL contract,
+  and adapter ports for public asset/metadata serving.
+- Future: deletion-aware Key Index custody boundary, Storage receipts for
+  hierarchical manifests, provisional-object lifecycle, restore quarantine
+  gate for Key Index replicas (CR-014 + CR-010 participant).
+- Future (only if CR-403 Go): rights-gated `metadata_snapshot` capability
+  separate from ownership indexing (CR-405).
+
+### 3.2 Storage does **not** own / must not infer
+
+| Forbidden | Authority |
+|---|---|
+| Collection recognition, chain qualification, ownership truth | Sonar / Inventory |
+| Report order lifecycle, disclosure ledger, artifact availability CAS | Ordering |
+| Identity links, opaque erasure-handle minting from Discord IDs, consent | Identity API |
+| Gate mapping / Discord snapshots / disclosure bands | Shadow Audit + privacy owner (CR-015) |
+| S3/CloudFront provisioning / CF KV pointer flips as IaC | loa-freeside terraform + operator `flipping-kv-pointer` |
+| Treating public RPC or marketplace metadata as rehost license | Explicit rights policy (CR-405) — missing today |
+| Stable public URLs for restricted Gate Leak artifacts | Forbidden by SDD; opaque IDs + authenticated proxy only |
+| Inferring logical-collection equivalence from metadata bytes | Inventory / Sonar evidence only |
+
+Beacon `is_not` on main already refuses live chain RPC, ownership indexing, and
+third-party gateway calls on the live read path — retained.
+
+---
+
+## 4. Bottom-up estimate (capacity / headcount)
+
+Assumptions: one primary maintainer familiar with this repo; shared protocol
+fixtures land from loa-freeside; production KMS/HSM is platform-owned (CR-013);
+no concurrent world-onboarding fire drill.
+
+| Work | Size | Headcount · calendar | Uncertainty |
+|---|---|---|---|
+| ACCEPT-STORAGE (this artifact) | S | 0.5 eng-day | Low |
+| CR-010 participant: receipt + provisional object adapter against ratified schema | M | 1 eng · ~1–1.5 weeks after CR-010 fixtures | Medium — schema churn |
+| CR-014 Key Index service + deletion-aware replication + restore quarantine + chaos suite | L / Critical | 1–2 eng · **4–7 weeks** after CR-007B + CR-013 KMS posture + CR-010 | **High** — no existing crypto/index code; HSM ops unknown |
+| CR-015 participation (field matrix / deletion participant rows only) | S–M | 0.5 eng · ~3 days | Medium — privacy owner leads |
+| CR-405 (if Go) rights policy + snapshot capability + pointer-flip contract | L | 1 eng · **2–4 weeks** after CR-002/CR-403 | High — legal/rights evidence |
+| Ongoing ops for Key Index (on-call, restore game days, key compromise) | steady | 0.2–0.4 FTE after G1B-4 | High until first game day |
+
+**Capacity statement for public substrate (current main):** hermetic unit tests +
+CI typecheck/test; network tests gated. No Key Index QPS, tombstone SLO, or
+50k-row manifest receipt load proof exists — those are release-gate fixtures
+Storage must still design under CR-014.
+
+**Issue-ready rule:** CR-014 remains blocked until a revised estimate binds
+named KMS/HSM owner, replica regions, and restore-chaos owners (platform +
+Storage).
+
+---
+
+## 5. Mixed-version / flags / deploy / rollback
+
+### 5.1 Acknowledged from SDD §16.6 / §17
+
+Storage is a named cell in the mixed-version matrix:
+
+- New manifest roots/pages read by **old Storage** must remain provisional and
+  must not fulfill until complete-verification is supported.
+- Expand → deploy → constrain; rollback allowed until all readers support the
+  constrained schema.
+- Restricted flags (`collection_report_restricted_enabled`,
+  `collection_report_restricted_rows_enabled`) are **server-evaluated** in
+  Ordering/Dashboard — Storage must fail closed when contracts/keys are missing,
+  not invent client flags inside adapters.
+
+### 5.2 What main actually provides today
+
+| Mechanism | Behavior | Fits restricted Key Index? |
+|---|---|---|
+| Metadata `v/{version}/` + CF KV pointer | Operator flip forward/back without overwriting bytes | Public metadata only |
+| Asset-pipeline consumerLabel `:v<N>` | Cache namespace rollback (ADR-13); anti-pattern = Lambda feature flags | Public assets only |
+| Feature flags for Gate Leak | **Not present** in this repo | N/A |
+
+### 5.3 Rollback limits (accepted)
+
+- **Public metadata:** roll KV pointer to prior version; do not delete prior
+  version folders casually; no silent overwrite of immutable version keys.
+- **Restricted Key Index (future):** no break-glass serve across tombstone gap;
+  rollback of application code must not re-enable proxy reads from a
+  pre-erasure backup; restore always enters quarantine first (SDD §11).
+- **In-flight Gate Leak orders:** Storage rollback must preserve receipts and
+  key references already handed to Ordering; orphan sweeper stays idempotent.
+
+Deploy position: Storage Key Index / restricted writers deploy **after**
+CR-013 key custody and **with** CR-010 fixtures; never ahead of Ordering
+tombstone watermark consumers.
+
+---
+
+## 6. Ops ownership
+
+| Concern | Owner | Current state on main |
+|---|---|---|
+| Public metadata ingest scripts / version publish | freeside-storage maintainer (@zkSoju CODEOWNERS) | Scripts + client exist; operator runs |
+| CF KV pointer flip / CDN IaC | loa-freeside platform + operator | Out of this repo (acknowledged) |
+| Key Index availability, replica lag, tombstone watermark | freeside-storage (future) + platform KMS | **Missing** |
+| Restore quarantine game days / pre-erasure restore chaos | freeside-storage + privacy/security | **Missing** |
+| Deletion receipt inbox / overdue erasure paging | Ordering saga + Storage participant | **Missing** here |
+| Safe disablement of restricted artifact writes | Platform flag + Storage fail-closed | **Missing** Storage switch |
+| Rights / rehost incidents on snapshots | Storage + Inventory + legal/rights (CR-405) | Informal STOR-1 only |
+| Alerts for public CDN/metadata 5xx | Existing world ops (not codified in this repo) | No collection-report runbook |
+
+Storage accepts future ownership of Key Index / restore / deletion-participant
+ops **only after** CR-014 lands with a written runbook (detect → disable writes →
+quarantine restore → resume). Until then, ops ownership for restricted artifacts
+is **unassigned in this repository**.
+
+---
+
+## 7. Evidence (audit of `origin/main` @ `99bd9bc`)
+
+Commands and observations used for this acceptance (worktree =
+`coord/collection-report-coordinator-f09.55`, aligned with `origin/main`):
+
+1. **Baseline:** `git rev-parse origin/main` → `99bd9bc1e0cd697cd68498acd04d4747432cc835`.
+2. **Deletion-aware Key Index:** ripgrep over `packages/`, `docs/`, `grimoires/`,
+   `scripts/` for `key index`, `tombstone`, `restore quarantine`, `AES-256-GCM`,
+   `GCM-SIV`, `artifact_manifest`, erasure/DEK terms → **no substantive hits**
+   (only incidental `indexOf` / license “rights”).
+3. **Public substrate present:** `MetadataDocument`, `ingestCollectionMetadata`,
+   asset-pipeline, S3 adapter, STOR-1 spec + snapshot script, CI workflow
+   (build → typecheck → hermetic test).
+4. **Rights boundary:** SDD §19.3 states mirroring cannot be automatic because
+   rehosting rights are explicit; main ingest has **no** `proxy|mirror|excluded`
+   policy gate. STOR-1 prefers leaving image URLs on source hosts for some
+   collections but does not encode a rights decision type.
+5. **Restore / rollback:** versioned metadata + KV flip and ADR-13 label rollback
+   only; no restore-quarantine path.
+6. **Capacity / ops:** no Key Index SLO dashboards or deletion runbooks in-repo;
+   beacon + README still describe a storage substrate that grew past “stub” for
+   public metadata but not for restricted erasure.
+7. **Coordinator mapping:** task-manifest assigns Storage
+   `ACCEPT-STORAGE`, `CR-014`, `CR-405`; sprint §12 names Storage maintainer for
+   CR-010 participant + CR-014.
+
+Masters cross-check: SDD §14.4 — no mandatory resolver change in first slice;
+restricted release **does** require Key Index + restore quarantine; CR-405 only
+after rights/source/pointer-flip ownership are explicit.
+
+---
+
+## 8. Unresolved closure conditions
+
+ACCEPT-STORAGE stays **conditional** (and CR-014/CR-405 stay non-issue-ready)
+until each item below is closed or explicitly waived by the coordinator +
+privacy/platform owners:
+
+1. **G-1 Discord viability Go** (CR-000) — No-go stops restricted branch; Storage
+   then drops CR-014/CR-405 from critical path without failing public T0/T1.
+2. **CR-007B** retention/deletion policy ratified (Storage as deletion
+   participant named in matrix).
+3. **CR-010** `artifact_manifest.v1` fixtures published; Storage receipt shape
+   frozen without coupling to Key Index ops.
+4. **CR-013** production KMS/HSM custody, registry distribution, and deploy
+   posture for Key Index material — named platform owner + Storage consumer
+   contract.
+5. **CR-014 design spike** in this repo (or linked ADR): Key Index schema,
+   replica topology, tombstone log, restore quarantine state machine, chaos
+   matrix — then **re-estimate** headcount.
+6. **CR-015** disclosure/deletion matrix lists every Storage-held field.
+7. **Restore chaos owners** scheduled: pre-erasure restore, replica loss,
+   regional failover, lost deletion receipt (SDD §11).
+8. **CR-405** (only if product Go): written rights policy enum, source
+   authority, pointer-flip owner, and “no inferred rehost” audit — separate from
+   STOR-1 manual onboarding.
+9. **Mixed-version fixtures** including old Storage + new manifests (SDD §16.6)
+   attached to release gate G1B-4 / G1B-5.
+10. **Ops runbook** for key compromise, safe disablement of restricted writes,
+    and restore quarantine — merged before restricted writers deploy.
+
+Public metadata work (URL contract, ingest, STOR-1) is **not** blocked by these
+conditions, but must not be marketed as satisfying G1B-4 / G4B / CR-014.
+
+---
+
+## 9. Lightweight validation (this dispatch)
+
+Performed on branch `coord/collection-report-coordinator-f09.55` after
+`pnpm install --frozen-lockfile`:
+
+- `pnpm build && pnpm typecheck && pnpm test` (hermetic; network tests unset)
+- Structural check: this file exists at
+  `grimoires/loa/coordination/collection-report/owner-acceptance.md` with
+  verdict ∈ {accepted, conditional, blocked} and required sections.
+
+No CR code was implemented. No commit, push, PR, or merge.
+
+---
+
+## 10. Strongest caveat
+
+**`origin/main` has no deletion-aware Key Index, tombstone watermark, or restore
+quarantine whatsoever** — Gate Leak restricted-artifact acceptance cannot be
+honestly treated as “ready to schedule CR-014” until crypto custody, replica
+deletion awareness, and restore chaos are designed and estimated; public
+metadata versioning on main is not a substitute.

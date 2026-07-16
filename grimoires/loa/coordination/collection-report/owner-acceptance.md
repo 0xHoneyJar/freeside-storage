@@ -5,6 +5,7 @@
 | Task | `ACCEPT-STORAGE` (collection-report-coordinator-f09.55) |
 | Repository | `0xHoneyJar/storage-api` (canonical checkout: freeside-storage) |
 | Branch | `coord/collection-report-coordinator-f09.55` |
+| Acceptance transport | PR #28; the immutable artifact revision is the Git commit carrying this file (`git log -1 --format=%H -- grimoires/loa/coordination/collection-report/owner-acceptance.md`). The SHA is intentionally not embedded in its own contents because doing so would be self-referential. |
 | Audited baseline | `origin/main` @ `99bd9bc` (`ci(storage-api): stand up CI — typecheck + test (#25)`) |
 | Coordinator snapshot | `collection-report-coordinator` @ `f3b1b8ed616836c586545bceb5618507bc0f4e14` |
 | PRD master | v0.3 (`sha256:4866ca1ccb580e7743a6f3523e73249d4ade13b0931424df1be782f644247f0c`) |
@@ -19,7 +20,8 @@ CR implementation, issue creation, push, PR, or merge.
 The verdict applies only to the audited repository baseline and immutable
 coordinator snapshot above. A material change to a cited master reopens the
 affected conditions; only a later dispatch-referenced revision of this file
-that pins its replacement inputs may supersede this verdict.
+that names the prior artifact commit and pins its replacement inputs may
+supersede this verdict.
 
 ---
 
@@ -295,13 +297,21 @@ the header rule above.
 
 ## 10. Lightweight validation (this dispatch)
 
-Performed on branch `coord/collection-report-coordinator-f09.55` after
-`pnpm install --frozen-lockfile`:
+Performed locally on branch `coord/collection-report-coordinator-f09.55` at
+`2026-07-16T22:15:39Z`, using Node `v22.23.1` and pnpm `9.0.0`, after
+`pnpm install --frozen-lockfile --ignore-scripts`:
 
-- `pnpm build && pnpm typecheck && pnpm test` (hermetic; network tests unset)
+- `pnpm build` → exit `0`
+- `pnpm typecheck` → exit `0`
+- `pnpm test` → exit `0` (`36` files passed; `394` tests passed, `4` skipped;
+  network tests unset)
 - Structural check: this file exists at
   `grimoires/loa/coordination/collection-report/owner-acceptance.md` with
   verdict ∈ {accepted, conditional, blocked} and required sections.
+
+This was a local validation run, not a CI run; no CI URL or external log is
+claimed. The exact commands, timestamp, toolchain, and result above are the
+reproduction record.
 
 No CR code was implemented. This acceptance document is committed and pushed
 through PR #28 for review; it does not authorize downstream CR implementation,

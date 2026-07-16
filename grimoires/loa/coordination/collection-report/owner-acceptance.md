@@ -295,7 +295,7 @@ the header rule above.
 
 ---
 
-## 10. Lightweight validation (this dispatch)
+## 10. Advisory local validation (this dispatch)
 
 Performed locally on branch `coord/collection-report-coordinator-f09.55` at
 `2026-07-16T22:15:39Z`, using Node `v22.23.1` and pnpm `9.0.0`, after
@@ -309,9 +309,12 @@ Performed locally on branch `coord/collection-report-coordinator-f09.55` at
   `grimoires/loa/coordination/collection-report/owner-acceptance.md` with
   verdict ∈ {accepted, conditional, blocked} and required sections.
 
-This was a local validation run, not a CI run; no CI URL or external log is
-claimed. The exact commands, timestamp, toolchain, and result above are the
-reproduction record.
+This was a local validation run, not a CI run; no CI URL or immutable external
+log is claimed. It is advisory baseline-health context only and is **not**
+acceptance evidence for any closure condition, owner attestation, merge, or
+production decision. The exact commands, timestamp, toolchain, and result above
+are provided solely as a reproduction recipe; durable validation evidence must
+come from a commit-referenced CI run or immutable log artifact.
 
 No CR code was implemented. This acceptance document is committed and pushed
 through PR #28 for review; it does not authorize downstream CR implementation,

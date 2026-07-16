@@ -6,13 +6,20 @@
 | Repository | `0xHoneyJar/storage-api` (canonical checkout: freeside-storage) |
 | Branch | `coord/collection-report-coordinator-f09.55` |
 | Audited baseline | `origin/main` @ `99bd9bc` (`ci(storage-api): stand up CI — typecheck + test (#25)`) |
-| Masters | coordinator `prd.md` / `sdd.md` / `sprint.md` (2026-07-15 candidates) |
+| Coordinator snapshot | `collection-report-coordinator` @ `f3b1b8ed616836c586545bceb5618507bc0f4e14` |
+| PRD master | v0.3 (`sha256:4866ca1ccb580e7743a6f3523e73249d4ade13b0931424df1be782f644247f0c`) |
+| SDD master | v0.5 (`sha256:255ec5874f944b9c255ba7d9b58d1abe073c1989aded55a39483b23d73cd0f09`) |
+| Sprint master | v0.6 (`sha256:682368e29051309c4d0c16e457a14127f207f9824b58ac75138f96fcbb1ed04e`) |
 | Date | 2026-07-16 |
 | Author role | freeside-storage maintainer (boundary owner) |
 | **Verdict** | **conditional** |
 
 This document is owner acceptance under sprint §13. It does **not** authorize
 CR implementation, issue creation, push, PR, or merge.
+The verdict applies only to the audited repository baseline and immutable
+coordinator snapshot above. A material change to a cited master reopens the
+affected conditions; only a later dispatch-referenced revision of this file
+that pins its replacement inputs may supersede this verdict.
 
 ---
 
@@ -76,8 +83,8 @@ CR-010) and will not fork Ordering schemas by hand.
 - Future: deletion-aware Key Index custody boundary, Storage receipts for
   hierarchical manifests, provisional-object lifecycle, restore quarantine
   gate for Key Index replicas (CR-014 + CR-010 participant).
-- Future (only if CR-403 Go): rights-gated `metadata_snapshot` capability
-  separate from ownership indexing (CR-405).
+- Future (only after CR-002 and a versioned CR-403 Go): rights-gated
+  `metadata_snapshot` capability separate from ownership indexing (CR-405).
 
 ### 3.2 Storage does **not** own / must not infer
 
@@ -109,7 +116,7 @@ no concurrent world-onboarding fire drill.
 | CR-010 participant: receipt + provisional object adapter against ratified schema | M | 1 eng · ~1–1.5 weeks after CR-010 fixtures | Medium — schema churn |
 | CR-014 Key Index service + deletion-aware replication + restore quarantine + chaos suite | L / Critical | 1–2 eng · **4–7 weeks** after CR-007B + CR-013 KMS posture + CR-010 | **High** — no existing crypto/index code; HSM ops unknown |
 | CR-015 participation (field matrix / deletion participant rows only) | S–M | 0.5 eng · ~3 days | Medium — privacy owner leads |
-| CR-405 (if Go) rights policy + snapshot capability + pointer-flip contract | L | 1 eng · **2–4 weeks** after CR-002/CR-403 | High — legal/rights evidence |
+| CR-405 rights policy + snapshot capability + pointer-flip contract | L | 1 eng · **2–4 weeks** after CR-002 and CR-403 Go | High — legal/rights evidence |
 | Ongoing ops for Key Index (on-call, restore game days, key compromise) | steady | 0.2–0.4 FTE after G1B-4 | High until first game day |
 
 **Capacity statement for public substrate (current main):** hermetic unit tests +
@@ -180,6 +187,14 @@ ops **only after** CR-014 lands with a written runbook (detect → disable write
 quarantine restore → resume). Until then, ops ownership for restricted artifacts
 is **unassigned in this repository**.
 
+During that gap, restricted writes remain forbidden. If restricted material is
+suspected in the public substrate, the Storage maintainer must stop the
+suspected write path and quarantine affected objects, then escalate to the
+Freeside privacy/security owner and loa-freeside operations/coordinator owners.
+No read or write path resumes until those authorities record a disposition.
+This is a fail-closed escalation rule, not a claim that a production
+collection-report on-call rotation already exists.
+
 ---
 
 ## 7. Evidence (audit of `origin/main` @ `99bd9bc`)
@@ -209,8 +224,9 @@ Commands and observations used for this acceptance (worktree =
    CR-010 participant + CR-014.
 
 Masters cross-check: SDD §14.4 — no mandatory resolver change in first slice;
-restricted release **does** require Key Index + restore quarantine; CR-405 only
-after rights/source/pointer-flip ownership are explicit.
+restricted release **does** require Key Index + restore quarantine; CR-405
+requires CR-002 and a versioned CR-403 Go, followed by explicit
+rights/source/pointer-flip ownership.
 
 ---
 
@@ -221,7 +237,9 @@ until each item below is closed or explicitly waived by the coordinator +
 privacy/platform owners:
 
 1. **G-1 Discord viability Go** (CR-000) — No-go stops restricted branch; Storage
-   then drops CR-014/CR-405 from critical path without failing public T0/T1.
+   then drops CR-014 from the Gate Leak critical path without failing public
+   T0/T1. CR-405 activation remains a separate CR-002 + CR-403 decision and
+   cannot be inferred from G-1.
 2. **CR-007B** retention/deletion policy ratified (Storage as deletion
    participant named in matrix).
 3. **CR-010** `artifact_manifest.v1` fixtures published; Storage receipt shape
@@ -231,13 +249,23 @@ privacy/platform owners:
    contract.
 5. **CR-014 design spike** in this repo (or linked ADR): Key Index schema,
    replica topology, tombstone log, restore quarantine state machine, chaos
-   matrix — then **re-estimate** headcount.
+   matrix, and the construction and lifecycle of
+   `canonical_plaintext_digest`. The design must prove that every retained
+   index, AAD field, commitment, receipt, log, and backup derivative preserves
+   retry/divergence detection without enabling offline enumeration or recovery
+   of erased low-entropy row data after the row's erasure. It must specify
+   deletion, retention, and restore behavior for that digest before choosing a
+   cryptographic construction; the SDD's separately keyed row commitment does
+   not by itself answer this digest's lifecycle — then **re-estimate**
+   headcount.
 6. **CR-015** disclosure/deletion matrix lists every Storage-held field.
 7. **Restore chaos owners** scheduled: pre-erasure restore, replica loss,
    regional failover, lost deletion receipt (SDD §11).
-8. **CR-405** (only if product Go): written rights policy enum, source
-   authority, pointer-flip owner, and “no inferred rehost” audit — separate from
-   STOR-1 manual onboarding.
+8. **CR-405** (only after CR-002 and a versioned CR-403 Go): written rights
+   policy enum, source authority, pointer-flip owner, and “no inferred rehost”
+   audit — separate from STOR-1 manual onboarding. G-1 remains a separate gate:
+   if the snapshot capability participates in restricted Gate Leak release, the
+   restricted branch still requires G-1 Go.
 9. **Mixed-version fixtures** including old Storage + new manifests (SDD §16.6)
    attached to release gate G1B-4 / G1B-5.
 10. **Ops runbook** for key compromise, safe disablement of restricted writes,
@@ -248,7 +276,24 @@ conditions, but must not be marketed as satisfying G1B-4 / G4B / CR-014.
 
 ---
 
-## 9. Lightweight validation (this dispatch)
+## 9. Sign-off and waiver ledger
+
+No coordinator, privacy, or platform sign-off or waiver is recorded by this
+revision.
+
+| Condition | Disposition | Authority | Recorded at | Evidence |
+|---|---|---|---|---|
+| All §8 conditions | Open; no waiver | Not recorded | — | — |
+
+A condition changes state only through a dated row naming the coordinator and
+the required privacy/platform authority with immutable evidence. Updating this
+ledger does not itself authorize implementation or production release; any
+verdict change also requires a superseding dispatch-referenced revision under
+the header rule above.
+
+---
+
+## 10. Lightweight validation (this dispatch)
 
 Performed on branch `coord/collection-report-coordinator-f09.55` after
 `pnpm install --frozen-lockfile`:
@@ -262,7 +307,7 @@ No CR code was implemented. No commit, push, PR, or merge.
 
 ---
 
-## 10. Strongest caveat
+## 11. Strongest caveat
 
 **`origin/main` has no deletion-aware Key Index, tombstone watermark, or restore
 quarantine whatsoever** — Gate Leak restricted-artifact acceptance cannot be

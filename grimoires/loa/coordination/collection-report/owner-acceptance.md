@@ -303,7 +303,9 @@ Performed on branch `coord/collection-report-coordinator-f09.55` after
   `grimoires/loa/coordination/collection-report/owner-acceptance.md` with
   verdict ∈ {accepted, conditional, blocked} and required sections.
 
-No CR code was implemented. No commit, push, PR, or merge.
+No CR code was implemented. This acceptance document is committed and pushed
+through PR #28 for review; it does not authorize downstream CR implementation,
+merge, or production release.
 
 ---
 

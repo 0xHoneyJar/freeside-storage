@@ -345,7 +345,7 @@ the header rule above.
 
 ## 10. Advisory local validation (this dispatch)
 
-Performed locally on immutable source tree
+Performed locally at immutable commit
 `48606296ddc0967f5833a8c70dda965fe5eef0d3` (branch
 `coord/collection-report-coordinator-f09.55`) at `2026-07-16T22:15:39Z`,
 using Node `v22.23.1` and pnpm `9.0.0`, after
@@ -358,6 +358,25 @@ using Node `v22.23.1` and pnpm `9.0.0`, after
 - Structural check: this file exists at
   `grimoires/loa/coordination/collection-report/owner-acceptance.md` with
   verdict ∈ {accepted, conditional, blocked} and required sections.
+
+The relationship between that validation commit and the exact PR head is
+git-verifiable, rather than inferred from the branch name. After this evidence
+revision is committed, the following commands must all exit `0` at PR head:
+
+```bash
+git cat-file -e 48606296ddc0967f5833a8c70dda965fe5eef0d3^{commit}
+git merge-base --is-ancestor 48606296ddc0967f5833a8c70dda965fe5eef0d3 HEAD
+git diff --quiet 48606296ddc0967f5833a8c70dda965fe5eef0d3..HEAD -- \
+  . ':(exclude)grimoires/loa/coordination/collection-report/owner-acceptance.md'
+git diff --check 48606296ddc0967f5833a8c70dda965fe5eef0d3..HEAD
+```
+
+The third command proves that every post-validation change is confined to this
+acceptance document; the executable source tested above is byte-for-byte
+unchanged. The fourth separately checks the finalized document delta itself.
+This is not a claim that the later evidence-only commits reran the product test
+suite: they did not need to, because the command above proves the tested source
+did not change.
 
 This was a local validation run, not a CI run; no CI URL or immutable external
 log is claimed. It is advisory baseline-health context only and is **not**

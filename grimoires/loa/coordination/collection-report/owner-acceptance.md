@@ -238,32 +238,34 @@ Commands and observations used for this acceptance (worktree =
    CR-010 participant + CR-014.
 
 The negative audit above is reproducible from this repository checkout. It
-searches only tracked text under the named path set (`-I` skips binary files);
-there are no generated/vendor exclusions hidden from the command:
+searches all tracked repository text at the audited baseline (`-I` skips binary
+files) without generated, vendor, or path exclusions:
 
 ```bash
 BASE=99bd9bc1e0cd697cd68498acd04d4747432cc835
 git cat-file -e "$BASE^{commit}"
 
-if git grep -I -n -i -E \
+git grep -I -n -i -E \
   '(key[ _-]?index|tombstone|restore[ _-]?quarantine|AES-256-GCM|GCM-SIV|artifact_manifest|erasure|(^|[^[:alnum:]_])DEK([^[:alnum:]_]|$))' \
-  "$BASE" -- packages docs grimoires scripts
-then
-  printf '%s\n' 'unexpected substantive restricted-storage hit' >&2
-  exit 1
-else
-  grep_status=$?
-  test "$grep_status" -eq 1
-fi
+  "$BASE" -- .
 
-git ls-tree -r --name-only "$BASE" -- packages docs grimoires scripts \
+git ls-tree -r --name-only "$BASE" \
   | wc -l \
   | tr -d ' '
 ```
 
-Observed on 2026-07-16: the negative search produced no lines and the tracked
-search scope contained `98` files. Reproduce coordinator master digests from a
-checkout of `collection-report-coordinator` with:
+Observed on 2026-07-17: the repository-wide search covered `979` tracked files
+and produced exactly one lexical hit:
+
+```text
+99bd9bc1e0cd697cd68498acd04d4747432cc835:.claude/protocols/beads-integration.md:49:| Delete | `br delete <id>` | Tombstone (soft delete) |
+```
+
+That hit documents Beads issue deletion and is not a restricted-storage
+tombstone, Key Index, restore quarantine, encryption, manifest, or erasure
+implementation. No substantive restricted-storage hit was found anywhere in
+tracked repository text at the audited baseline. Reproduce coordinator master
+digests from a checkout of `collection-report-coordinator` with:
 
 ```bash
 COORD=f3b1b8ed616836c586545bceb5618507bc0f4e14
@@ -359,24 +361,38 @@ using Node `v22.23.1` and pnpm `9.0.0`, after
   `grimoires/loa/coordination/collection-report/owner-acceptance.md` with
   verdict ∈ {accepted, conditional, blocked} and required sections.
 
-The relationship between that validation commit and the exact PR head is
-git-verifiable, rather than inferred from the branch name. After this evidence
-revision is committed, the following commands must all exit `0` at PR head:
+The relationship between that validation commit and reviewed PR head
+`123206622cebfd8f157e5a6cbea177f178da03ec` is git-verifiable, rather than
+inferred from the branch name. These commands were run at `2026-07-17T01:01:24Z`
+with the reviewed head named explicitly rather than through mutable `HEAD`:
 
 ```bash
-git cat-file -e 48606296ddc0967f5833a8c70dda965fe5eef0d3^{commit}
-git merge-base --is-ancestor 48606296ddc0967f5833a8c70dda965fe5eef0d3 HEAD
-git diff --quiet 48606296ddc0967f5833a8c70dda965fe5eef0d3..HEAD -- \
+VALIDATED=48606296ddc0967f5833a8c70dda965fe5eef0d3
+REVIEW_HEAD=123206622cebfd8f157e5a6cbea177f178da03ec
+git cat-file -e "$VALIDATED^{commit}"
+git merge-base --is-ancestor "$VALIDATED" "$REVIEW_HEAD"
+git merge-base "$VALIDATED" "$REVIEW_HEAD"
+git diff --quiet "$VALIDATED..$REVIEW_HEAD" -- \
   . ':(exclude)grimoires/loa/coordination/collection-report/owner-acceptance.md'
-git diff --check 48606296ddc0967f5833a8c70dda965fe5eef0d3..HEAD
+git diff --check "$VALIDATED..$REVIEW_HEAD"
+git rev-list --count "$VALIDATED..$REVIEW_HEAD"
+git diff --name-only "$VALIDATED..$REVIEW_HEAD"
 ```
 
-The third command proves that every post-validation change is confined to this
-acceptance document; the executable source tested above is byte-for-byte
-unchanged. The fourth separately checks the finalized document delta itself.
-This is not a claim that the later evidence-only commits reran the product test
-suite: they did not need to, because the command above proves the tested source
-did not change.
+Observed results: the `cat-file`, ancestry, non-document diff, and `diff-check`
+commands exited `0`; `git merge-base` printed
+`48606296ddc0967f5833a8c70dda965fe5eef0d3`; the revision count was `7`; and the
+only changed path was
+`grimoires/loa/coordination/collection-report/owner-acceptance.md`. This proves
+that executable source at reviewed head `123206622cebfd8f157e5a6cbea177f178da03ec`
+was byte-for-byte identical to the validated commit while checking that exact
+reviewed document delta for whitespace errors.
+
+This follow-up evidence revision is intentionally **not** presented as
+self-validation of its own eventual commit hash. It records observed results
+for the immutable reviewed head above and only changes this acceptance
+document. It does not claim that later evidence-only revisions reran the
+product test suite or validated themselves.
 
 This was a local validation run, not a CI run; no CI URL or immutable external
 log is claimed. It is advisory baseline-health context only and is **not**
@@ -393,7 +409,8 @@ merge, or production release.
 
 ## 11. Strongest caveat
 
-**`origin/main` has no deletion-aware Key Index, tombstone watermark, or restore
+**Audited baseline `99bd9bc1e0cd697cd68498acd04d4747432cc835` has no
+deletion-aware Key Index, restricted-storage tombstone watermark, or restore
 quarantine whatsoever** — Gate Leak restricted-artifact acceptance cannot be
 honestly treated as “ready to schedule CR-014” until crypto custody, replica
 deletion awareness, and restore chaos are designed and estimated; public

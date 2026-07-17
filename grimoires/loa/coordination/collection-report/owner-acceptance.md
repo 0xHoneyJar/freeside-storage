@@ -8,9 +8,9 @@
 | Acceptance transport | PR #28; the immutable artifact revision is the Git commit carrying this file (`git log -1 --format=%H -- grimoires/loa/coordination/collection-report/owner-acceptance.md`). The SHA is intentionally not embedded in its own contents because doing so would be self-referential. |
 | Audited baseline | `origin/main` @ `99bd9bc` (`ci(storage-api): stand up CI — typecheck + test (#25)`) |
 | Coordinator snapshot | `collection-report-coordinator` @ `f3b1b8ed616836c586545bceb5618507bc0f4e14` |
-| PRD master | v0.3 (`sha256:4866ca1ccb580e7743a6f3523e73249d4ade13b0931424df1be782f644247f0c`) |
-| SDD master | v0.5 (`sha256:255ec5874f944b9c255ba7d9b58d1abe073c1989aded55a39483b23d73cd0f09`) |
-| Sprint master | v0.6 (`sha256:682368e29051309c4d0c16e457a14127f207f9824b58ac75138f96fcbb1ed04e`) |
+| PRD master | coordinator snapshot path `grimoires/loa/prd.md`, v0.3 (`sha256:4866ca1ccb580e7743a6f3523e73249d4ade13b0931424df1be782f644247f0c`) |
+| SDD master | coordinator snapshot path `grimoires/loa/sdd.md`, v0.5 (`sha256:255ec5874f944b9c255ba7d9b58d1abe073c1989aded55a39483b23d73cd0f09`) |
+| Sprint master | coordinator snapshot path `grimoires/loa/sprint.md`, v0.6 (`sha256:682368e29051309c4d0c16e457a14127f207f9824b58ac75138f96fcbb1ed04e`) |
 | Date | 2026-07-16 |
 | Author role | freeside-storage maintainer (boundary owner) |
 | **Verdict** | **conditional** |
@@ -190,10 +190,21 @@ quarantine restore → resume). Until then, ops ownership for restricted artifac
 is **unassigned in this repository**.
 
 During that gap, restricted writes remain forbidden. If restricted material is
-suspected in the public substrate, the Storage maintainer must stop the
-suspected write path and quarantine affected objects, then escalate to the
-Freeside privacy/security owner and loa-freeside operations/coordinator owners.
-No read or write path resumes until those authorities record a disposition.
+suspected in the public substrate, containment is scoped as follows:
+
+1. Stop the suspected writer and quarantine the affected objects or prefixes.
+2. Stop every read and write against those affected objects or prefixes, and
+   stop every restricted-artifact path, while escalating to the Freeside
+   privacy/security owner and loa-freeside operations/coordinator owners.
+3. Public metadata reads outside the affected prefixes may continue only after
+   responders verify that credentials, caches, pointer flips, and CDN behavior
+   do not extend the suspected blast radius. Otherwise fail closed at the
+   broader shared boundary.
+4. Resume a named scope only after those authorities record that the source is
+   contained, the affected set is enumerated and quarantined, relevant keys are
+   rotated, caches/pointers are invalidated where applicable, and the written
+   disposition explicitly names the paths permitted to resume.
+
 This is a fail-closed escalation rule, not a claim that a production
 collection-report on-call rotation already exists.
 
@@ -224,6 +235,42 @@ Commands and observations used for this acceptance (worktree =
 7. **Coordinator mapping:** task-manifest assigns Storage
    `ACCEPT-STORAGE`, `CR-014`, `CR-405`; sprint §12 names Storage maintainer for
    CR-010 participant + CR-014.
+
+The negative audit above is reproducible from this repository checkout. It
+searches only tracked text under the named path set (`-I` skips binary files);
+there are no generated/vendor exclusions hidden from the command:
+
+```bash
+BASE=99bd9bc1e0cd697cd68498acd04d4747432cc835
+git cat-file -e "$BASE^{commit}"
+
+if git grep -I -n -i -E \
+  '(key[ _-]?index|tombstone|restore[ _-]?quarantine|AES-256-GCM|GCM-SIV|artifact_manifest|erasure|(^|[^[:alnum:]_])DEK([^[:alnum:]_]|$))' \
+  "$BASE" -- packages docs grimoires scripts
+then
+  printf '%s\n' 'unexpected substantive restricted-storage hit' >&2
+  exit 1
+else
+  grep_status=$?
+  test "$grep_status" -eq 1
+fi
+
+git ls-tree -r --name-only "$BASE" -- packages docs grimoires scripts \
+  | wc -l \
+  | tr -d ' '
+```
+
+Observed on 2026-07-16: the negative search produced no lines and the tracked
+search scope contained `98` files. Reproduce coordinator master digests from a
+checkout of `collection-report-coordinator` with:
+
+```bash
+COORD=f3b1b8ed616836c586545bceb5618507bc0f4e14
+for artifact_path in grimoires/loa/prd.md grimoires/loa/sdd.md grimoires/loa/sprint.md
+do
+  git show "$COORD:$artifact_path" | shasum -a 256
+done
+```
 
 Masters cross-check: SDD §14.4 — no mandatory resolver change in first slice;
 restricted release **does** require Key Index + restore quarantine; CR-405

@@ -4,6 +4,7 @@
 |---|---|
 | Task | `ACCEPT-STORAGE` (collection-report-coordinator-f09.55) |
 | Repository | `0xHoneyJar/storage-api` (GitHub canonical name; the legacy `0xHoneyJar/freeside-storage` remote and local `freeside-storage` checkout resolve to this same repository) |
+| Repository alias evidence | `gh pr view 28 -R 0xHoneyJar/freeside-storage --json url` → `https://github.com/0xHoneyJar/storage-api/pull/28`; pushes to the legacy remote emit GitHub's moved-repository notice naming `https://github.com/0xHoneyJar/storage-api.git` |
 | Branch | `coord/collection-report-coordinator-f09.55` |
 | Acceptance transport | PR #28; the immutable artifact revision is the Git commit carrying this file (`git log -1 --format=%H -- grimoires/loa/coordination/collection-report/owner-acceptance.md`). The SHA is intentionally not embedded in its own contents because doing so would be self-referential. |
 | Audited baseline | `origin/main` @ `99bd9bc` (`ci(storage-api): stand up CI — typecheck + test (#25)`) |
@@ -344,8 +345,10 @@ the header rule above.
 
 ## 10. Advisory local validation (this dispatch)
 
-Performed locally on branch `coord/collection-report-coordinator-f09.55` at
-`2026-07-16T22:15:39Z`, using Node `v22.23.1` and pnpm `9.0.0`, after
+Performed locally on immutable source tree
+`48606296ddc0967f5833a8c70dda965fe5eef0d3` (branch
+`coord/collection-report-coordinator-f09.55`) at `2026-07-16T22:15:39Z`,
+using Node `v22.23.1` and pnpm `9.0.0`, after
 `pnpm install --frozen-lockfile --ignore-scripts`:
 
 - `pnpm build` → exit `0`

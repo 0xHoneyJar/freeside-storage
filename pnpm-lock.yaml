@@ -7,6 +7,13 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@freeside-storage/adapters-s3':
+        specifier: workspace:^
+        version: link:packages/adapters/s3
+      '@freeside-storage/client':
+        specifier: workspace:^
+        version: link:packages/storage-client
     devDependencies:
       '@types/pg':
         specifier: ^8.11.11
